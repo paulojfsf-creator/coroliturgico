@@ -2373,31 +2373,12 @@ function init() {
     refreshRehearsalPrograms();
     setupProgramButtons();
 
-
-    // Dashboard inicial
-    updateDashboard();
-    const dateInput = document.getElementById('date');
+    // Listener para atualizar preview quando data mudar
     if (dateInput) {
       dateInput.addEventListener('change', () => {
         updatePreview();
-        updateDashboard();
       });
     }
-
-    // Atalhos de dashboard para tabs
-    document.querySelectorAll('[data-go-tab]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const tabId = btn.getAttribute('data-go-tab');
-        const tabBtn = document.querySelector('.tabs button[data-tab="' + tabId + '"]');
-        const tabEl = document.getElementById(tabId);
-        if (tabBtn && tabEl) {
-          document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-          tabBtn.classList.add('active');
-          tabEl.classList.add('active');
-        }
-      });
-    });
 
     // Botão de exportar folheto em PDF
     const exportPdfBtn = document.getElementById('exportPdfBtn');
