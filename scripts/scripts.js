@@ -2346,7 +2346,7 @@ function init() {
     loadCsvFromGoogleSheets();
     populateSongDropdowns();
     
-    // Inicializar data com hoje se vazia
+    // Inicializar data com hoje
     const dateInput = document.getElementById('date');
     if (dateInput && !dateInput.value) {
       const today = new Date();
