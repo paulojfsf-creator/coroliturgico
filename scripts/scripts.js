@@ -3006,13 +3006,34 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       dayEl.classList.add('today');
     }
     
+    // Verificar se há programa guardado para este dia
+    const date = new Date(currentYear, currentMonth, day);
+    const dateStr = date.toISOString().split('T')[0];
+    const hasProgram = checkIfHasProgram(dateStr);
+    
+    if (hasProgram && !otherMonth) {
+      dayEl.classList.add('has-program');
+      dayEl.title = 'Programa guardado - Clique para ver';
+    }
+    
     if (events && events.length > 0) {
-      const event = events[0]; // Pegar o primeiro evento do dia
+      const event = events[0];
       dayEl.classList.add('liturgical-event', event.type);
-      dayEl.title = event.title;
       
+      if (hasProgram) {
+        dayEl.title = `${event.title}\n✓ Programa guardado - Clique para ver`;
+      } else {
+        dayEl.title = event.title;
+      }
+    }
+    
+    if (!otherMonth) {
       dayEl.onclick = function() {
-        showEventDetails(events);
+        if (hasProgram) {
+          showProgramForDay(dateStr);
+        } else if (events && events.length > 0) {
+          showEventDetails(events, dateStr);
+        }
       };
     }
     
@@ -3024,11 +3045,272 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     return dayEl;
   }
 
-  // Mostrar detalhes do evento
-  function showEventDetails(events) {
-    const eventTitles = events.map(e => `${e.title} (${e.type})`).join('\n');
-    alert(eventTitles);
+  // Verificar se existe programa para uma data
+  function checkIfHasProgram(dateStr) {
+    try {
+      const historyData = localStorage.getItem('coroHistory_v1');
+      if (!historyData) return false;
+      
+      const history = JSON.parse(historyData);
+      return history.some(function(prog) {
+        return prog.date === dateStr;
+      });
+    } catch (e) {
+      return false;
+    }
   }
+
+  // Obter programa de uma data específica
+  function getProgramForDay(dateStr) {
+    try {
+      const historyData = localStorage.getItem('coroHistory_v1');
+      if (!historyData) return null;
+      
+      const history = JSON.parse(historyData);
+      return history.find(function(prog) {
+        return prog.date === dateStr;
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Mostrar programa do dia
+  function showProgramForDay(dateStr) {
+    const program = getProgramForDay(dateStr);
+    if (!program) {
+      showEventDetails([], dateStr);
+      return;
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'program-day-modal';
+    
+    const date = new Date(dateStr + 'T00:00:00');
+    const dateFormatted = date.toLocaleDateString('pt-PT', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+
+    let partsHTML = '';
+    const partLabels = window.PROGRAM_PARTS || [];
+    
+    partLabels.forEach(function(part) {
+      const songTitle = program[part.id];
+      if (songTitle) {
+        partsHTML += `
+          <div class="program-part-item">
+            <div class="program-part-label">${part.icon || ''} ${part.label}</div>
+            <div class="program-part-song">${songTitle}</div>
+          </div>
+        `;
+      }
+    });
+
+    if (!partsHTML) {
+      partsHTML = '<p class="muted small">Nenhum cântico definido ainda.</p>';
+    }
+
+    modal.innerHTML = `
+      <div class="program-day-content">
+        <div class="program-day-header">
+          <div>
+            <h3>📅 Programa Litúrgico</h3>
+            <div class="program-day-date">${dateFormatted}</div>
+          </div>
+          <button class="program-day-close" onclick="this.closest('.program-day-modal').remove()">×</button>
+        </div>
+        
+        <div class="program-day-info">
+          ${program.liturgicalTitle ? `
+            <div class="program-info-row">
+              <span class="program-info-label">Celebração:</span>
+              <span class="program-info-value">${program.liturgicalTitle}</span>
+            </div>
+          ` : ''}
+          ${program.extraTheme ? `
+            <div class="program-info-row">
+              <span class="program-info-label">Tema:</span>
+              <span class="program-info-value">${program.extraTheme}</span>
+            </div>
+          ` : ''}
+          ${program.cycleDisplay ? `
+            <div class="program-info-row">
+              <span class="program-info-label">Tempo litúrgico:</span>
+              <span class="program-info-value">${program.cycleDisplay}</span>
+            </div>
+          ` : ''}
+        </div>
+        
+        <div class="program-day-parts">
+          <h4>🎵 Cânticos do Programa</h4>
+          ${partsHTML}
+        </div>
+        
+        <div class="program-day-actions">
+          <button class="btn secondary" onclick="this.closest('.program-day-modal').remove()">
+            Fechar
+          </button>
+          <button class="btn" onclick="editProgramFromCalendar('${dateStr}')">
+            ✏️ Editar Programa
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    
+    modal.onclick = function(e) {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    };
+  }
+
+  // Função global para editar programa a partir do calendário
+  window.editProgramFromCalendar = function(dateStr) {
+    // Fechar modal
+    const modal = document.querySelector('.program-day-modal');
+    if (modal) modal.remove();
+
+    // Carregar programa
+    const program = getProgramForDay(dateStr);
+    if (!program) return;
+
+    // Mudar para tab de programa
+    const programTab = document.querySelector('[data-tab="tab-programa"]');
+    if (programTab) {
+      programTab.click();
+    }
+
+    // Preencher formulário (dar tempo para a tab mudar)
+    setTimeout(function() {
+      const dateInput = document.getElementById('date');
+      if (dateInput) {
+        dateInput.value = dateStr;
+        dateInput.dispatchEvent(new Event('change'));
+      }
+
+      const liturgicalInput = document.getElementById('liturgicalTitle');
+      if (liturgicalInput && program.liturgicalTitle) {
+        liturgicalInput.value = program.liturgicalTitle;
+      }
+
+      const themeInput = document.getElementById('extraTheme');
+      if (themeInput && program.extraTheme) {
+        themeInput.value = program.extraTheme;
+      }
+
+      // Preencher cânticos
+      const partLabels = window.PROGRAM_PARTS || [];
+      partLabels.forEach(function(part) {
+        const select = document.getElementById(part.id);
+        if (select && program[part.id]) {
+          select.value = program[part.id];
+        }
+      });
+
+      // Scroll para o topo
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
+  };
+
+  // Mostrar detalhes do evento (versão melhorada)
+  function showEventDetails(events, dateStr) {
+    const modal = document.createElement('div');
+    modal.className = 'program-day-modal';
+    
+    const date = new Date(dateStr + 'T00:00:00');
+    const dateFormatted = date.toLocaleDateString('pt-PT', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+
+    let eventsHTML = '';
+    if (events && events.length > 0) {
+      eventsHTML = events.map(function(event) {
+        return `
+          <div class="program-part-item">
+            <div class="program-part-label">${event.title}</div>
+            <div class="program-part-song">
+              <span class="event-type ${event.type}">${event.type}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      eventsHTML = '<p class="muted small">Dia comum do calendário.</p>';
+    }
+
+    modal.innerHTML = `
+      <div class="program-day-content">
+        <div class="program-day-header">
+          <div>
+            <h3>📅 ${dateFormatted}</h3>
+          </div>
+          <button class="program-day-close" onclick="this.closest('.program-day-modal').remove()">×</button>
+        </div>
+        
+        ${events && events.length > 0 ? `
+          <div class="program-day-parts">
+            <h4>🎄 Celebrações Litúrgicas</h4>
+            ${eventsHTML}
+          </div>
+        ` : `
+          <div class="no-program-message">
+            <span style="font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 1rem;">📅</span>
+            <p>Nenhuma celebração especial neste dia.</p>
+          </div>
+        `}
+        
+        <div class="program-day-actions">
+          <button class="btn secondary" onclick="this.closest('.program-day-modal').remove()">
+            Fechar
+          </button>
+          <button class="btn" onclick="createProgramForDate('${dateStr}')">
+            ➕ Criar Programa
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    
+    modal.onclick = function(e) {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    };
+  }
+
+  // Função global para criar programa para uma data específica
+  window.createProgramForDate = function(dateStr) {
+    // Fechar modal
+    const modal = document.querySelector('.program-day-modal');
+    if (modal) modal.remove();
+
+    // Mudar para tab de programa
+    const programTab = document.querySelector('[data-tab="tab-programa"]');
+    if (programTab) {
+      programTab.click();
+    }
+
+    // Preencher data
+    setTimeout(function() {
+      const dateInput = document.getElementById('date');
+      if (dateInput) {
+        dateInput.value = dateStr;
+        dateInput.dispatchEvent(new Event('change'));
+      }
+
+      // Scroll para o topo
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
+  };
 
   // Renderizar próximos eventos
   function renderUpcomingEvents() {
@@ -3112,6 +3394,32 @@ window.showUseDropdown = function(btn, partLabels, titulo){
         renderCalendar();
         renderUpcomingEvents();
       }, 100);
+    }
+  });
+
+  // Atualizar calendário quando programa é guardado
+  window.updateCalendarAfterSave = function() {
+    renderCalendar();
+    renderUpcomingEvents();
+  };
+
+  // Hook no formulário de programa para atualizar calendário
+  const programForm = document.getElementById('programForm');
+  if (programForm) {
+    programForm.addEventListener('submit', function() {
+      setTimeout(function() {
+        if (window.updateCalendarAfterSave) {
+          window.updateCalendarAfterSave();
+        }
+      }, 500);
+    });
+  }
+
+  // Também atualizar quando há mudanças no localStorage
+  window.addEventListener('storage', function(e) {
+    if (e.key === 'coroHistory_v1') {
+      renderCalendar();
+      renderUpcomingEvents();
     }
   });
 })();
