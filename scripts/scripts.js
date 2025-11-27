@@ -2945,17 +2945,18 @@ window.showUseDropdown = function(btn, partLabels, titulo){
   // Renderizar calendário
   function renderCalendar() {
     const monthYear = document.getElementById('calendarMonthYear');
-    const daysContainer = document.getElementById('calendarDays');
+    const gridContainer = document.getElementById('calendarGrid');
     
-    if (!monthYear || !daysContainer) return;
+    if (!monthYear || !gridContainer) return;
 
     // Nome do mês
     const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
     monthYear.textContent = `${monthNames[currentMonth]} ${currentYear}`;
 
-    // Limpar dias anteriores
-    daysContainer.innerHTML = '';
+    // Remover apenas os dias (manter cabeçalhos)
+    const dayElements = gridContainer.querySelectorAll('.calendar-day');
+    dayElements.forEach(el => el.remove());
 
     // Primeiro dia do mês
     const firstDay = new Date(currentYear, currentMonth, 1);
@@ -2968,7 +2969,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     for (let i = startingDayOfWeek - 1; i >= 0; i--) {
       const day = prevMonthLastDay - i;
       const dayEl = createDayElement(day, true);
-      daysContainer.appendChild(dayEl);
+      gridContainer.appendChild(dayEl);
     }
 
     // Dias do mês atual
@@ -2982,14 +2983,14 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       
       const isToday = date.toDateString() === today.toDateString();
       const dayEl = createDayElement(day, false, isToday, dayEvents);
-      daysContainer.appendChild(dayEl);
+      gridContainer.appendChild(dayEl);
     }
 
     // Dias do próximo mês
     const remainingDays = 42 - (startingDayOfWeek + daysInMonth);
     for (let day = 1; day <= remainingDays; day++) {
       const dayEl = createDayElement(day, true);
-      daysContainer.appendChild(dayEl);
+      gridContainer.appendChild(dayEl);
     }
   }
 
@@ -3423,5 +3424,3 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     }
   });
 })();
-
-};
