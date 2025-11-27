@@ -1,0 +1,108 @@
+/* ===== Print Styles ===== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 1.5cm 1cm 1.5cm 2cm;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Esconder elementos não necessários */
+  header,
+  .tabs,
+  #tab-programa,
+  #tab-sugestoes,
+  #tab-historico,
+  #tab-catalogo,
+  #tab-ensaios,
+  .toast-container,
+  .modal-backdrop,
+  .loading-overlay,
+  .card-actions,
+  .btn,
+  button,
+  .program-part-actions,
+  .catalog-item-actions,
+  .history-item-actions,
+  .form-actions {
+    display: none !important;
+  }
+
+  /* Mostrar apenas a pré-visualização */
+  #tab-preview {
+    display: block !important;
+  }
+
+  .preview-container {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  .preview-content {
+    column-count: 2;
+    column-gap: 2cm;
+  }
+
+  /* Garantir quebras de página adequadas */
+  .preview-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .preview-header {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* Otimizar tipografia para impressão */
+  body {
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  .preview-title {
+    font-size: 16pt;
+  }
+
+  .preview-section-title {
+    font-size: 12pt;
+  }
+
+  .preview-song-title {
+    font-size: 11pt;
+  }
+
+  .preview-song-meta {
+    font-size: 9pt;
+  }
+
+  .preview-song-lyrics {
+    font-size: 10pt;
+    line-height: 1.6;
+  }
+
+  /* Garantir links visíveis se necessário */
+  a[href]:after {
+    content: none;
+  }
+
+  /* Remover sombras e bordas desnecessárias */
+  .card,
+  .catalog-item,
+  .history-item-card {
+    box-shadow: none !important;
+    border: none !important;
+  }
+}

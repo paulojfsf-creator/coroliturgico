@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sistema de Gestão Litúrgica - Coro Paroquial São João Batista de Rio Caldo">
+  <title>Coro Paroquial São João Batista de Rio Caldo</title>
+  
+  <!-- Preconnect para fontes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Ícones -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/print.css" media="print">
+</head>
+<body>
+  <!-- Header -->
+  <header id="mainHeader">
+    <div class="header-inner">
+      <div class="header-main">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' fill='%23004b80' rx='10'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='60' fill='white'%3E🎵%3C/text%3E%3C/svg%3E" 
+             alt="Logo" 
+             class="header-logo" 
+             id="headerLogo">
+        <div class="header-text">
+          <h1>
+            <span>Coro Paroquial São João Batista</span>
+            <span class="liturgical-pill" id="liturgicalBadge">
+              <span class="liturgical-dot"></span>
+              <span id="liturgicalText">Tempo Comum</span>
+            </span>
+          </h1>
+          <p>Rio Caldo, Terras de Bouro</p>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn-icon" id="darkModeToggle" title="Alternar modo escuro" aria-label="Alternar modo escuro">
+          <i class="ti ti-moon"></i>
+        </button>
+        <button class="btn-icon" id="notificationsBtn" title="Notificações" aria-label="Notificações">
+          <i class="ti ti-bell"></i>
+          <span class="badge" id="notificationBadge" hidden>0</span>
+        </button>
+        <button class="btn-icon" id="settingsBtn" title="Configurações" aria-label="Configurações">
+          <i class="ti ti-settings"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navegação por Tabs -->
+  <nav class="tabs" role="tablist" aria-label="Navegação principal">
+    <button class="tab-btn active" data-tab="programa" role="tab" aria-selected="true" aria-controls="tab-programa">
+      <i class="ti ti-calendar-event"></i>
+      <span>Programa</span>
+    </button>
+    <button class="tab-btn" data-tab="sugestoes" role="tab" aria-selected="false" aria-controls="tab-sugestoes">
+      <i class="ti ti-bulb"></i>
+      <span>Sugestões</span>
+    </button>
+    <button class="tab-btn" data-tab="catalogo" role="tab" aria-selected="false" aria-controls="tab-catalogo">
+      <i class="ti ti-music"></i>
+      <span>Catálogo</span>
+    </button>
+    <button class="tab-btn" data-tab="historico" role="tab" aria-selected="false" aria-controls="tab-historico">
+      <i class="ti ti-history"></i>
+      <span>Histórico</span>
+    </button>
+    <button class="tab-btn" data-tab="ensaios" role="tab" aria-selected="false" aria-controls="tab-ensaios">
+      <i class="ti ti-microphone"></i>
+      <span>Ensaios</span>
+    </button>
+    <button class="tab-btn" data-tab="preview" role="tab" aria-selected="false" aria-controls="tab-preview">
+      <i class="ti ti-file-text"></i>
+      <span>Pré-visualização</span>
+    </button>
+  </nav>
+
+  <!-- Conteúdo Principal -->
+  <main id="mainContent">
+    <!-- Tab: Programa -->
+    <section id="tab-programa" class="tab-content active" role="tabpanel" aria-labelledby="programa-tab">
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="ti ti-calendar-event"></i> Criar Programa Litúrgico</h2>
+          <button class="btn btn-secondary btn-sm" id="loadFromHistoryBtn">
+            <i class="ti ti-history"></i> Carregar do Histórico
+          </button>
+        </div>
+        
+        <div class="form-section">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="programDate">
+                <i class="ti ti-calendar"></i> Data
+              </label>
+              <input type="date" id="programDate" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="programTime">
+                <i class="ti ti-clock"></i> Hora
+              </label>
+              <input type="time" id="programTime" value="10:00">
+            </div>
+            
+            <div class="form-group">
+              <label for="programCelebration">
+                <i class="ti ti-cross"></i> Celebração
+              </label>
+              <input type="text" 
+                     id="programCelebration" 
+                     placeholder="Ex: Domingo da Palavra de Deus"
+                     list="celebrationSuggestions">
+              <datalist id="celebrationSuggestions"></datalist>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="programLiturgicalTime">
+                <i class="ti ti-palette"></i> Tempo Litúrgico
+              </label>
+              <select id="programLiturgicalTime">
+                <option value="tempocomum">Tempo Comum</option>
+                <option value="advento">Advento</option>
+                <option value="natal">Natal</option>
+                <option value="quaresma">Quaresma</option>
+                <option value="pascoa">Páscoa</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="programPresider">
+                <i class="ti ti-user"></i> Presidente
+              </label>
+              <input type="text" 
+                     id="programPresider" 
+                     placeholder="Nome do sacerdote"
+                     list="presiderSuggestions">
+              <datalist id="presiderSuggestions"></datalist>
+            </div>
+            
+            <div class="form-group">
+              <label for="programComments">
+                <i class="ti ti-notes"></i> Comentários
+              </label>
+              <input type="text" 
+                     id="programComments" 
+                     placeholder="Observações adicionais">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Partes do Programa -->
+      <div class="card" id="programPartsCard">
+        <div class="card-header">
+          <h2><i class="ti ti-list"></i> Partes do Programa</h2>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" id="toggleAllPartsBtn">
+              <i class="ti ti-arrows-maximize"></i> Expandir Todas
+            </button>
+            <button class="btn btn-primary btn-sm" id="aiSuggestBtn">
+              <i class="ti ti-sparkles"></i> Sugestões IA
+            </button>
+          </div>
+        </div>
+        
+        <div id="programPartsContainer" class="program-parts">
+          <!-- As partes serão geradas dinamicamente pelo JS -->
+        </div>
+        
+        <div class="form-actions">
+          <button class="btn btn-secondary" id="clearProgramBtn">
+            <i class="ti ti-trash"></i> Limpar
+          </button>
+          <button class="btn btn-primary" id="saveProgramBtn">
+            <i class="ti ti-device-floppy"></i> Guardar Programa
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab: Sugestões -->
+    <section id="tab-sugestoes" class="tab-content" role="tabpanel" aria-labelledby="sugestoes-tab" hidden>
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="ti ti-bulb"></i> Sugestões Inteligentes</h2>
+        </div>
+        
+        <div class="suggestions-container">
+          <div class="suggestion-filters">
+            <div class="form-group">
+              <label><i class="ti ti-filter"></i> Filtrar por Tempo Litúrgico</label>
+              <select id="suggestionsLiturgicalFilter">
+                <option value="">Todos</option>
+                <option value="tempocomum">Tempo Comum</option>
+                <option value="advento">Advento</option>
+                <option value="natal">Natal</option>
+                <option value="quaresma">Quaresma</option>
+                <option value="pascoa">Páscoa</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label><i class="ti ti-search"></i> Buscar Tema</label>
+              <input type="text" id="suggestionsThemeSearch" placeholder="Ex: paz, esperança...">
+            </div>
+          </div>
+          
+          <div id="suggestionsGrid" class="suggestions-grid">
+            <!-- Sugestões serão carregadas dinamicamente -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab: Catálogo -->
+    <section id="tab-catalogo" class="tab-content" role="tabpanel" aria-labelledby="catalogo-tab" hidden>
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="ti ti-music"></i> Catálogo de Cânticos</h2>
+          <button class="btn btn-primary btn-sm" id="addSongBtn">
+            <i class="ti ti-plus"></i> Adicionar Cântico
+          </button>
+        </div>
+        
+        <div class="catalog-filters">
+          <div class="search-box">
+            <i class="ti ti-search"></i>
+            <input type="text" 
+                   id="catalogSearch" 
+                   placeholder="Buscar por título, autor, tema..."
+                   aria-label="Buscar cânticos">
+          </div>
+          
+          <div class="filter-chips" id="catalogFilterChips">
+            <button class="chip active" data-filter="all">
+              <span>Todos</span>
+              <span class="chip-count" id="countAll">0</span>
+            </button>
+            <button class="chip" data-filter="recent">
+              <i class="ti ti-clock"></i>
+              <span>Recentes</span>
+            </button>
+            <button class="chip" data-filter="favorites">
+              <i class="ti ti-star"></i>
+              <span>Favoritos</span>
+            </button>
+          </div>
+        </div>
+        
+        <div id="catalogList" class="catalog-list">
+          <!-- Lista de cânticos será gerada dinamicamente -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab: Histórico -->
+    <section id="tab-historico" class="tab-content" role="tabpanel" aria-labelledby="historico-tab" hidden>
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="ti ti-history"></i> Histórico de Programas</h2>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" id="exportHistoryBtn">
+              <i class="ti ti-download"></i> Exportar
+            </button>
+            <button class="btn btn-secondary btn-sm" id="deleteOldProgramsBtn">
+              <i class="ti ti-trash"></i> Limpar Antigos
+            </button>
+          </div>
+        </div>
+        
+        <div class="history-filters">
+          <div class="form-group">
+            <label><i class="ti ti-calendar"></i> Período</label>
+            <select id="historyPeriodFilter">
+              <option value="all">Todos</option>
+              <option value="month">Último Mês</option>
+              <option value="quarter">Últimos 3 Meses</option>
+              <option value="year">Último Ano</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label><i class="ti ti-palette"></i> Tempo Litúrgico</label>
+            <select id="historyLiturgicalFilter">
+              <option value="">Todos</option>
+              <option value="tempocomum">Tempo Comum</option>
+              <option value="advento">Advento</option>
+              <option value="natal">Natal</option>
+              <option value="quaresma">Quaresma</option>
+              <option value="pascoa">Páscoa</option>
+            </select>
+          </div>
+        </div>
+        
+        <div id="historyTimeline" class="history-timeline">
+          <!-- Timeline será gerada dinamicamente -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab: Ensaios -->
+    <section id="tab-ensaios" class="tab-content" role="tabpanel" aria-labelledby="ensaios-tab" hidden>
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="ti ti-microphone"></i> Gestão de Ensaios</h2>
+          <button class="btn btn-primary btn-sm" id="addRehearsalBtn">
+            <i class="ti ti-plus"></i> Novo Ensaio
+          </button>
+        </div>
+        
+        <div id="rehearsalsCalendar" class="rehearsals-calendar">
+          <!-- Calendário de ensaios -->
+        </div>
+        
+        <div id="rehearsalsList" class="rehearsals-list">
+          <!-- Lista de ensaios -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab: Pré-visualização -->
+    <section id="tab-preview" class="tab-content" role="tabpanel" aria-labelledby="preview-tab" hidden>
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="ti ti-file-text"></i> Pré-visualização do Programa</h2>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" id="downloadPdfBtn">
+              <i class="ti ti-file-download"></i> PDF
+            </button>
+            <button class="btn btn-secondary btn-sm" id="downloadExcelBtn">
+              <i class="ti ti-file-spreadsheet"></i> Excel
+            </button>
+            <button class="btn btn-primary btn-sm" id="printPreviewBtn">
+              <i class="ti ti-printer"></i> Imprimir
+            </button>
+          </div>
+        </div>
+        
+        <div id="previewContainer" class="preview-container">
+          <!-- Pré-visualização será gerada dinamicamente -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Modals -->
+  <div id="modalContainer"></div>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay" hidden>
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>A carregar...</p>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="scripts/constants.js"></script>
+  <script src="scripts/utils.js"></script>
+  <script src="scripts/storage.js"></script>
+  <script src="scripts/ui.js"></script>
+  <script src="scripts/program.js"></script>
+  <script src="scripts/catalog.js"></script>
+  <script src="scripts/history.js"></script>
+  <script src="scripts/suggestions.js"></script>
+  <script src="scripts/rehearsals.js"></script>
+  <script src="scripts/export.js"></script>
+  <script src="scripts/app.js"></script>
+</body>
+</html>
