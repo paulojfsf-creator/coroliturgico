@@ -722,6 +722,222 @@
   margin: 0.5rem 0;
 }
 
+/* Calendário Litúrgico */
+.liturgical-calendar {
+  margin-top: 1.5rem;
+  background: var(--card);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px rgba(15,23,42,0.12);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border-subtle);
+}
+
+.calendar-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.calendar-nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.calendar-nav button {
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.85rem;
+}
+
+.calendar-nav button:hover {
+  background: var(--primary-soft);
+  transform: translateY(-1px);
+}
+
+.calendar-month-year {
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.35rem;
+}
+
+.calendar-day-header {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 0.5rem;
+  text-transform: uppercase;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  background: var(--bg-soft);
+  border: 1px solid transparent;
+}
+
+.calendar-day:hover {
+  background: var(--primary-soft);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.calendar-day.other-month {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.calendar-day.other-month:hover {
+  background: var(--bg-soft);
+  transform: none;
+  box-shadow: none;
+}
+
+.calendar-day.today {
+  background: var(--primary);
+  color: white;
+  font-weight: 700;
+  border-color: var(--primary);
+}
+
+.calendar-day.liturgical-event {
+  background: linear-gradient(135deg, var(--event-color, var(--primary)) 0%, var(--event-color, var(--primary)) 100%);
+  color: white;
+  font-weight: 600;
+  border: 2px solid var(--event-color, var(--primary));
+}
+
+.calendar-day.liturgical-event::after {
+  content: '•';
+  position: absolute;
+  bottom: 2px;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.calendar-day.advento { --event-color: #7c3aed; }
+.calendar-day.natal { --event-color: #eab308; }
+.calendar-day.quaresma { --event-color: #7c2d12; }
+.calendar-day.pascoa { --event-color: #fafafa; color: #000; }
+.calendar-day.festa { --event-color: #dc2626; }
+.calendar-day.solenidade { --event-color: #059669; }
+
+.calendar-day-number {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.calendar-day-indicator {
+  font-size: 0.6rem;
+  margin-top: 0.15rem;
+}
+
+.liturgical-events-list {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--border-subtle);
+}
+
+.liturgical-events-list h4 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-main);
+}
+
+.event-item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.6rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem;
+  background: var(--bg-soft);
+  transition: all 0.2s;
+}
+
+.event-item:hover {
+  background: var(--primary-soft);
+  transform: translateX(4px);
+}
+
+.event-date {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--primary);
+  min-width: 60px;
+}
+
+.event-details {
+  flex: 1;
+}
+
+.event-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.15rem;
+}
+
+.event-type {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  background: rgba(0,0,0,0.05);
+}
+
+.event-type.advento { background: #ede9fe; color: #7c3aed; }
+.event-type.natal { background: #fef3c7; color: #92400e; }
+.event-type.quaresma { background: #fef2f2; color: #7c2d12; }
+.event-type.pascoa { background: #f0fdf4; color: #166534; }
+.event-type.festa { background: #fee2e2; color: #dc2626; }
+.event-type.solenidade { background: #d1fae5; color: #059669; }
+
+@media (max-width: 768px) {
+  .calendar-day-header {
+    font-size: 0.65rem;
+    padding: 0.3rem;
+  }
+  
+  .calendar-day {
+    font-size: 0.75rem;
+  }
+  
+  .calendar-nav button {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}
+
 /* Modo impressão do folheto */
 @media print {
   body {
@@ -1147,6 +1363,38 @@ body.lit-gold {
           </div>
         </div>
       </section>
+      
+      <!-- Calendário Litúrgico -->
+      <div class="liturgical-calendar">
+        <div class="calendar-header">
+          <h3>📅 Calendário Litúrgico</h3>
+          <div class="calendar-nav">
+            <button type="button" id="prevMonth" title="Mês anterior">‹</button>
+            <button type="button" id="todayBtn" title="Hoje">Hoje</button>
+            <button type="button" id="nextMonth" title="Próximo mês">›</button>
+          </div>
+        </div>
+        
+        <div class="calendar-month-year" id="calendarMonthYear"></div>
+        
+        <div class="calendar-grid">
+          <!-- Cabeçalhos dos dias -->
+          <div class="calendar-day-header">Dom</div>
+          <div class="calendar-day-header">Seg</div>
+          <div class="calendar-day-header">Ter</div>
+          <div class="calendar-day-header">Qua</div>
+          <div class="calendar-day-header">Qui</div>
+          <div class="calendar-day-header">Sex</div>
+          <div class="calendar-day-header">Sáb</div>
+        </div>
+        
+        <div id="calendarDays" class="calendar-grid" style="grid-column: 1 / -1;"></div>
+        
+        <div class="liturgical-events-list">
+          <h4>🎄 Próximas Celebrações Importantes</h4>
+          <div id="upcomingEvents"></div>
+        </div>
+      </div>
     </section>
 
     <section id="tab-programa" class="tab">

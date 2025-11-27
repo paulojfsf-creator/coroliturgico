@@ -2846,4 +2846,274 @@ window.showUseDropdown = function(btn, partLabels, titulo){
   if (closeBtn) {
     closeBtn.onclick = function() { m.remove(); };
   }
+  m.onclick = function(e) { if (e.target === m) m.remove(); };
+};
+
+// ===== CALENDÁRIO LITÚRGICO =====
+(function() {
+  // Datas litúrgicas importantes para 2024-2025
+  const LITURGICAL_EVENTS = {
+    2024: [
+      { date: '2024-12-01', title: 'I Domingo do Advento', type: 'advento', season: 'advento' },
+      { date: '2024-12-08', title: 'Imaculada Conceição', type: 'solenidade', season: 'advento' },
+      { date: '2024-12-08', title: 'II Domingo do Advento', type: 'advento', season: 'advento' },
+      { date: '2024-12-15', title: 'III Domingo do Advento', type: 'advento', season: 'advento' },
+      { date: '2024-12-22', title: 'IV Domingo do Advento', type: 'advento', season: 'advento' },
+      { date: '2024-12-24', title: 'Véspera de Natal', type: 'natal', season: 'natal' },
+      { date: '2024-12-25', title: 'Natal do Senhor', type: 'solenidade', season: 'natal' },
+      { date: '2024-12-29', title: 'Sagrada Família', type: 'festa', season: 'natal' }
+    ],
+    2025: [
+      { date: '2025-01-01', title: 'Santa Maria Mãe de Deus', type: 'solenidade', season: 'natal' },
+      { date: '2025-01-06', title: 'Epifania do Senhor', type: 'solenidade', season: 'natal' },
+      { date: '2025-01-12', title: 'Batismo do Senhor', type: 'festa', season: 'natal' },
+      { date: '2025-02-02', title: 'Apresentação do Senhor', type: 'festa', season: 'tempocomum' },
+      { date: '2025-03-05', title: 'Quarta-feira de Cinzas', type: 'quaresma', season: 'quaresma' },
+      { date: '2025-03-09', title: 'I Domingo da Quaresma', type: 'quaresma', season: 'quaresma' },
+      { date: '2025-03-16', title: 'II Domingo da Quaresma', type: 'quaresma', season: 'quaresma' },
+      { date: '2025-03-23', title: 'III Domingo da Quaresma', type: 'quaresma', season: 'quaresma' },
+      { date: '2025-03-25', title: 'Anunciação do Senhor', type: 'solenidade', season: 'quaresma' },
+      { date: '2025-03-30', title: 'IV Domingo da Quaresma', type: 'quaresma', season: 'quaresma' },
+      { date: '2025-04-06', title: 'V Domingo da Quaresma', type: 'quaresma', season: 'quaresma' },
+      { date: '2025-04-13', title: 'Domingo de Ramos', type: 'quaresma', season: 'quaresma' },
+      { date: '2025-04-17', title: 'Quinta-feira Santa', type: 'pascoa', season: 'pascoa' },
+      { date: '2025-04-18', title: 'Sexta-feira Santa', type: 'pascoa', season: 'pascoa' },
+      { date: '2025-04-19', title: 'Sábado Santo', type: 'pascoa', season: 'pascoa' },
+      { date: '2025-04-20', title: 'Domingo de Páscoa', type: 'solenidade', season: 'pascoa' },
+      { date: '2025-04-27', title: 'II Domingo da Páscoa', type: 'pascoa', season: 'pascoa' },
+      { date: '2025-05-04', title: 'III Domingo da Páscoa', type: 'pascoa', season: 'pascoa' },
+      { date: '2025-05-11', title: 'IV Domingo da Páscoa', type: 'pascoa', season: 'pascoa' },
+      { date: '2025-05-18', title: 'V Domingo da Páscoa', type: 'pascoa', season: 'pascoa' },
+      { date: '2025-05-25', title: 'VI Domingo da Páscoa', type: 'pascoa', season: 'pascoa' },
+      { date: '2025-05-29', title: 'Ascensão do Senhor', type: 'solenidade', season: 'pascoa' },
+      { date: '2025-06-01', title: 'VII Domingo da Páscoa', type: 'pascoa', season: 'pascoa' },
+      { date: '2025-06-08', title: 'Pentecostes', type: 'solenidade', season: 'pascoa' },
+      { date: '2025-06-15', title: 'Santíssima Trindade', type: 'solenidade', season: 'tempocomum' },
+      { date: '2025-06-22', title: 'Corpo de Deus', type: 'solenidade', season: 'tempocomum' },
+      { date: '2025-06-27', title: 'Sagrado Coração de Jesus', type: 'solenidade', season: 'tempocomum' },
+      { date: '2025-08-15', title: 'Assunção de Nossa Senhora', type: 'solenidade', season: 'tempocomum' },
+      { date: '2025-09-14', title: 'Exaltação da Santa Cruz', type: 'festa', season: 'tempocomum' },
+      { date: '2025-11-01', title: 'Todos os Santos', type: 'solenidade', season: 'tempocomum' },
+      { date: '2025-11-02', title: 'Fiéis Defuntos', type: 'festa', season: 'tempocomum' },
+      { date: '2025-11-09', title: 'Dedicação da Basílica de Latrão', type: 'festa', season: 'tempocomum' },
+      { date: '2025-11-23', title: 'Cristo Rei', type: 'solenidade', season: 'tempocomum' },
+      { date: '2025-11-30', title: 'I Domingo do Advento', type: 'advento', season: 'advento' },
+      { date: '2025-12-07', title: 'II Domingo do Advento', type: 'advento', season: 'advento' },
+      { date: '2025-12-08', title: 'Imaculada Conceição', type: 'solenidade', season: 'advento' },
+      { date: '2025-12-14', title: 'III Domingo do Advento', type: 'advento', season: 'advento' },
+      { date: '2025-12-21', title: 'IV Domingo do Advento', type: 'advento', season: 'advento' },
+      { date: '2025-12-25', title: 'Natal do Senhor', type: 'solenidade', season: 'natal' }
+    ],
+    2026: [
+      { date: '2026-01-01', title: 'Santa Maria Mãe de Deus', type: 'solenidade', season: 'natal' }
+    ]
+  };
+
+  let currentMonth = new Date().getMonth();
+  let currentYear = new Date().getFullYear();
+
+  // Obter todos os eventos
+  function getAllEvents() {
+    const events = [];
+    Object.keys(LITURGICAL_EVENTS).forEach(year => {
+      events.push(...LITURGICAL_EVENTS[year]);
+    });
+    return events;
+  }
+
+  // Obter eventos de um mês específico
+  function getEventsForMonth(year, month) {
+    const allEvents = getAllEvents();
+    return allEvents.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate.getFullYear() === year && eventDate.getMonth() === month;
+    });
+  }
+
+  // Obter próximos eventos
+  function getUpcomingEvents(limit = 5) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const allEvents = getAllEvents();
+    return allEvents
+      .filter(event => new Date(event.date) >= today)
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .slice(0, limit);
+  }
+
+  // Renderizar calendário
+  function renderCalendar() {
+    const monthYear = document.getElementById('calendarMonthYear');
+    const daysContainer = document.getElementById('calendarDays');
+    
+    if (!monthYear || !daysContainer) return;
+
+    // Nome do mês
+    const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    monthYear.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+    // Limpar dias anteriores
+    daysContainer.innerHTML = '';
+
+    // Primeiro dia do mês
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    // Dias do mês anterior
+    const prevMonthLastDay = new Date(currentYear, currentMonth, 0).getDate();
+    for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+      const day = prevMonthLastDay - i;
+      const dayEl = createDayElement(day, true);
+      daysContainer.appendChild(dayEl);
+    }
+
+    // Dias do mês atual
+    const events = getEventsForMonth(currentYear, currentMonth);
+    const today = new Date();
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(currentYear, currentMonth, day);
+      const dateStr = date.toISOString().split('T')[0];
+      const dayEvents = events.filter(e => e.date === dateStr);
+      
+      const isToday = date.toDateString() === today.toDateString();
+      const dayEl = createDayElement(day, false, isToday, dayEvents);
+      daysContainer.appendChild(dayEl);
+    }
+
+    // Dias do próximo mês
+    const remainingDays = 42 - (startingDayOfWeek + daysInMonth);
+    for (let day = 1; day <= remainingDays; day++) {
+      const dayEl = createDayElement(day, true);
+      daysContainer.appendChild(dayEl);
+    }
+  }
+
+  // Criar elemento de dia
+  function createDayElement(day, otherMonth, isToday, events) {
+    const dayEl = document.createElement('div');
+    dayEl.className = 'calendar-day';
+    
+    if (otherMonth) {
+      dayEl.classList.add('other-month');
+    }
+    
+    if (isToday) {
+      dayEl.classList.add('today');
+    }
+    
+    if (events && events.length > 0) {
+      const event = events[0]; // Pegar o primeiro evento do dia
+      dayEl.classList.add('liturgical-event', event.type);
+      dayEl.title = event.title;
+      
+      dayEl.onclick = function() {
+        showEventDetails(events);
+      };
+    }
+    
+    const numberSpan = document.createElement('span');
+    numberSpan.className = 'calendar-day-number';
+    numberSpan.textContent = day;
+    dayEl.appendChild(numberSpan);
+    
+    return dayEl;
+  }
+
+  // Mostrar detalhes do evento
+  function showEventDetails(events) {
+    const eventTitles = events.map(e => `${e.title} (${e.type})`).join('\n');
+    alert(eventTitles);
+  }
+
+  // Renderizar próximos eventos
+  function renderUpcomingEvents() {
+    const container = document.getElementById('upcomingEvents');
+    if (!container) return;
+
+    const events = getUpcomingEvents(8);
+    
+    if (events.length === 0) {
+      container.innerHTML = '<p class="muted small">Nenhum evento próximo.</p>';
+      return;
+    }
+
+    container.innerHTML = events.map(event => {
+      const date = new Date(event.date);
+      const dateStr = date.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' });
+      
+      return `
+        <div class="event-item">
+          <div class="event-date">${dateStr}</div>
+          <div class="event-details">
+            <div class="event-title">${event.title}</div>
+            <span class="event-type ${event.type}">${event.type}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Event listeners
+  const prevBtn = document.getElementById('prevMonth');
+  const nextBtn = document.getElementById('nextMonth');
+  const todayBtn = document.getElementById('todayBtn');
+
+  if (prevBtn) {
+    prevBtn.onclick = function() {
+      currentMonth--;
+      if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      }
+      renderCalendar();
+    };
+  }
+
+  if (nextBtn) {
+    nextBtn.onclick = function() {
+      currentMonth++;
+      if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      }
+      renderCalendar();
+    };
+  }
+
+  if (todayBtn) {
+    todayBtn.onclick = function() {
+      const today = new Date();
+      currentMonth = today.getMonth();
+      currentYear = today.getFullYear();
+      renderCalendar();
+    };
+  }
+
+  // Inicializar calendário quando estiver pronto
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      renderCalendar();
+      renderUpcomingEvents();
+    });
+  } else {
+    renderCalendar();
+    renderUpcomingEvents();
+  }
+
+  // Atualizar quando mudar de tab
+  document.addEventListener('click', function(e) {
+    if (e.target.dataset.tab === 'tab-dashboard' || e.target.closest('[data-tab="tab-dashboard"]')) {
+      setTimeout(function() {
+        renderCalendar();
+        renderUpcomingEvents();
+      }, 100);
+    }
+  });
+})();
+
 };
