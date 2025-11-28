@@ -521,6 +521,7 @@
       #tab-historico,
       #tab-catalogo,
       #tab-partituras,
+      #tab-videos,
       #tab-ensaios,
       .toast-container { display: none !important; }
       #tab-preview,
@@ -1591,6 +1592,8 @@ body.lit-gold {
       <button type="button" data-tab="tab-programa"><span class="dot"></span> Programa</button>
       <button type="button" data-tab="tab-editor"><span class="dot"></span> Editor Folheto</button>
       <button type="button" data-tab="tab-catalogo"><span class="dot"></span> Catálogo</button>
+      <button type="button" data-tab="tab-partituras"><span class="dot"></span> Partituras</button>
+      <button type="button" data-tab="tab-videos"><span class="dot"></span> Vídeos</button>
       <button type="button" data-tab="tab-historico"><span class="dot"></span> Histórico</button>
       <button type="button" data-tab="tab-ensaios"><span class="dot"></span> Ensaios</button>
     </nav>
@@ -2002,9 +2005,9 @@ body.lit-gold {
     </section>
 
     <section id="tab-ensaios" class="tab">
-      <h2>Ensaios – mensagem de WhatsApp</h2>
+      <h2>Ensaios</h2>
       <form id="rehearsalForm">
-        <p class="small">Gera uma mensagem com o programa do domingo para enviar ao grupo.</p>
+        <p class="small">Gera uma mensagem para enviar por WhatsApp ou Email com o programa do domingo.</p>
         <div class="row">
           <div class="col">
             <label for="rehearsalDate">Data do ensaio</label>
@@ -2030,8 +2033,87 @@ body.lit-gold {
         <label for="rehearsalNotes">Notas para o ensaio</label>
         <textarea id="rehearsalNotes" placeholder="ex.: Tragam a partitura nova do ofertório."></textarea>
 
-        <button type="button" class="btn" id="rehearsalWhatsAppBtn">Gerar mensagem WhatsApp</button>
+        <div class="row" style="margin-top: 1rem; gap: 0.5rem;">
+          <button type="button" class="btn" id="rehearsalWhatsAppBtn">📱 Enviar WhatsApp</button>
+          <button type="button" class="btn secondary" id="rehearsalEmailBtn">📧 Enviar Email (com partituras)</button>
+        </div>
       </form>
+    </section>
+
+    <section id="tab-partituras" class="tab">
+      <h2>📁 Partituras</h2>
+      <p class="small">Acesso direto às partituras do coro no Google Drive.</p>
+      
+      <div style="margin-bottom: 1rem;">
+        <a href="https://drive.google.com/drive/folders/10VhjmmmvGcUzg8gdIT3Rlu5iDTFqlJy8?usp=drive_link" 
+           target="_blank" 
+           class="btn secondary small"
+           style="display: inline-flex; align-items: center; gap: 0.5rem;">
+          🔗 Abrir no Google Drive
+        </a>
+      </div>
+
+      <!-- Google Drive Embed -->
+      <div style="border: 1px solid var(--border-subtle); border-radius: 0.5rem; overflow: hidden; background: white;">
+        <iframe 
+          src="https://drive.google.com/embeddedfolderview?id=10VhjmmmvGcUzg8gdIT3Rlu5iDTFqlJy8#grid" 
+          style="width: 100%; height: 600px; border: none;">
+        </iframe>
+      </div>
+
+      <div style="margin-top: 1rem;">
+        <details>
+          <summary class="small" style="cursor: pointer; padding: 0.5rem; background: var(--bg-soft); border-radius: 0.5rem;">
+            💡 Como usar as partituras
+          </summary>
+          <div style="padding: 1rem; font-size: 0.9rem;">
+            <ul>
+              <li><strong>Visualizar:</strong> Clica numa partitura para abrir</li>
+              <li><strong>Download:</strong> Botão de download no topo direito</li>
+              <li><strong>Imprimir:</strong> Menu "Ficheiro" → "Imprimir"</li>
+              <li><strong>Pesquisar:</strong> Usa a caixa de pesquisa no Drive</li>
+              <li><strong>Organização:</strong> Partituras organizadas por tempo litúrgico e alfabeticamente</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="tab-videos" class="tab">
+      <h2>🎥 Vídeos dos Cânticos</h2>
+      <p class="small">Vê e ouve os cânticos do repertório para ensaiar.</p>
+
+      <!-- Filtros -->
+      <div class="row" style="margin-bottom: 1rem;">
+        <div class="col">
+          <label for="videoSearch">Pesquisar cântico</label>
+          <input type="text" id="videoSearch" placeholder="Nome do cântico...">
+        </div>
+        <div class="col">
+          <label for="videoSection">Secção</label>
+          <select id="videoSection">
+            <option value="">Todas</option>
+            <option value="Entrada">Entrada</option>
+            <option value="Glória">Glória</option>
+            <option value="Salmo">Salmo</option>
+            <option value="Aclamação">Aclamação</option>
+            <option value="Ofertório">Ofertório</option>
+            <option value="Santo">Santo</option>
+            <option value="Cordeiro">Cordeiro</option>
+            <option value="Comunhão">Comunhão</option>
+            <option value="Final">Final</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Container de vídeos -->
+      <div id="videosContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem;">
+        <p class="small muted">Seleciona um cântico do catálogo para ver o vídeo...</p>
+      </div>
+
+      <div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-soft); border-radius: 0.5rem; border-left: 4px solid var(--primary);">
+        <p class="small" style="margin: 0;"><strong>💡 Dica:</strong> Podes adicionar links de vídeo do YouTube no catálogo de cânticos (coluna "Video" do Google Sheets).</p>
+      </div>
     </section>
   </div>
 

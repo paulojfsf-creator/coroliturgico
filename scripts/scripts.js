@@ -1935,6 +1935,82 @@ document.getElementById('assemblySheetBtnNoLyrics').addEventListener('click', ()
     window.open(waUrl, '_blank');
   });
 
+  // Botão Email
+  document.getElementById('rehearsalEmailBtn').addEventListener('click', () => {
+    const dateStr = document.getElementById('rehearsalDate').value;
+    const timeStr = document.getElementById('rehearsalTime').value;
+    const place = document.getElementById('rehearsalPlace').value.trim();
+    const programIdx = document.getElementById('rehearsalProgram').value;
+    const notes = document.getElementById('rehearsalNotes').value.trim();
+
+    if (!dateStr || !timeStr) {
+      showToast('Preenche a data e a hora do ensaio.', 'error');
+      return;
+    }
+    if (!programIdx) {
+      showToast('Escolhe um domingo/programa.', 'error');
+      return;
+    }
+    const rec = history[parseInt(programIdx, 10)];
+    if (!rec) {
+      showToast('Programa inválido.', 'error');
+      return;
+    }
+
+    const [y, m, d] = dateStr.split('-').map(v => parseInt(v, 10));
+    const dt = new Date(y, m - 1, d);
+    const dataFormatada = dt.toLocaleDateString('pt-PT', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    const horaFormatada = timeStr.substring(0,5);
+
+    // Assunto do email
+    const subject = encodeURIComponent('Ensaio Coro - ' + dataFormatada);
+
+    // Corpo do email
+    let body = '';
+    body += '🎶 Ensaio do Coro Paroquial São João Batista de Rio Caldo 🎶%0D%0A%0D%0A';
+    body += '🗓️ Data: ' + encodeURIComponent(dataFormatada) + '%0D%0A';
+    body += '🕐 Hora: ' + horaFormatada + '%0D%0A';
+    if (place) body += '📍 Local: ' + encodeURIComponent(place) + '%0D%0A';
+    body += '%0D%0A';
+    body += '📋 PROGRAMA DO DOMINGO:%0D%0A';
+    body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%0D%0A';
+    body += 'Celebração: ' + encodeURIComponent(rec.title || '') + '%0D%0A';
+    if (rec.extraTheme) body += 'Tema: ' + encodeURIComponent(rec.extraTheme) + '%0D%0A';
+    body += 'Tempo litúrgico: ' + encodeURIComponent(rec.season || '') + ' | Ciclo: ' + encodeURIComponent(rec.cycle || '') + '%0D%0A%0D%0A';
+    
+    if (rec.parts) {
+      body += '🎵 CÂNTICOS:%0D%0A';
+      Object.keys(rec.parts).forEach(function(partId) {
+        var p = rec.parts[partId];
+        if (!p || !p.title) return;
+        var label = p.label || partId;
+        body += '  • ' + encodeURIComponent(label + ': ' + p.title) + '%0D%0A';
+      });
+      body += '%0D%0A';
+    }
+    
+    if (notes) {
+      body += '📝 NOTAS:%0D%0A';
+      body += encodeURIComponent(notes) + '%0D%0A%0D%0A';
+    }
+    
+    body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%0D%0A';
+    body += '📁 As partituras estão disponíveis em:%0D%0A';
+    body += 'https://drive.google.com/drive/folders/10VhjmmmvGcUzg8gdIT3Rlu5iDTFqlJy8%0D%0A%0D%0A';
+    body += '💡 Abre o link acima para descarregar as partituras necessárias.%0D%0A%0D%0A';
+    body += 'Nos vemos no ensaio! 🎶';
+
+    const mailtoUrl = 'mailto:?subject=' + subject + '&body=' + body;
+    window.location.href = mailtoUrl;
+    
+    showToast('Email aberto! As partituras estão linkadas no corpo do email.', 'success');
+  });
+
   const dateInput = document.getElementById('date');
   const litTitleInput = document.getElementById('liturgicalTitle');
   const extraThemeInput = document.getElementById('extraTheme');
@@ -3636,4 +3712,114 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       applyCustomMargins();
     }
   });
+})();
+
+// ===== VÍDEOS DOS CÂNTICOS =====
+(function() {
+  function renderVideos() {
+    const container = document.getElementById('videosContainer');
+    const searchInput = document.getElementById('videoSearch');
+    const sectionSelect = document.getElementById('videoSection');
+    
+    if (!container) return;
+    
+    // Filtrar cânticos que têm vídeo
+    let filteredSongs = (window.songs || []).filter(song => {
+      const videoUrl = song.Video || song.video || '';
+      return videoUrl.trim() !== '';
+    });
+    
+    // Aplicar filtros
+    const searchTerm = (searchInput && searchInput.value || '').toLowerCase();
+    const selectedSection = sectionSelect && sectionSelect.value || '';
+    
+    if (searchTerm) {
+      filteredSongs = filteredSongs.filter(song => {
+        const title = (song.Título || song.Titulo || song.titulo || '').toLowerCase();
+        const author = (song.Autor || song.autor || '').toLowerCase();
+        return title.includes(searchTerm) || author.includes(searchTerm);
+      });
+    }
+    
+    if (selectedSection) {
+      filteredSongs = filteredSongs.filter(song => {
+        const theme = song.Tema || song.tema || '';
+        return theme.includes(selectedSection);
+      });
+    }
+    
+    if (!filteredSongs.length) {
+      container.innerHTML = '<p class="small muted">Nenhum cântico encontrado com vídeo. Adiciona links de vídeo na coluna "Video" do catálogo.</p>';
+      return;
+    }
+    
+    // Renderizar vídeos
+    container.innerHTML = filteredSongs.map(song => {
+      const title = song.Título || song.Titulo || song.titulo || 'Sem título';
+      const author = song.Autor || song.autor || '';
+      const videoUrl = song.Video || song.video || '';
+      
+      // Extrair ID do YouTube
+      let youtubeId = '';
+      if (videoUrl.includes('youtube.com/watch?v=')) {
+        youtubeId = videoUrl.split('watch?v=')[1].split('&')[0];
+      } else if (videoUrl.includes('youtu.be/')) {
+        youtubeId = videoUrl.split('youtu.be/')[1].split('?')[0];
+      } else if (videoUrl.includes('youtube.com/embed/')) {
+        youtubeId = videoUrl.split('embed/')[1].split('?')[0];
+      }
+      
+      if (!youtubeId) {
+        return `
+          <div style="padding: 1rem; background: var(--bg-soft); border-radius: 0.5rem;">
+            <h4 style="margin: 0 0 0.5rem 0; font-size: 0.9rem;">${title}</h4>
+            ${author ? `<p class="small muted" style="margin: 0 0 0.5rem 0;">${author}</p>` : ''}
+            <p class="small">⚠️ Link de vídeo inválido</p>
+            <a href="${videoUrl}" target="_blank" class="small" style="color: var(--primary);">Abrir link →</a>
+          </div>
+        `;
+      }
+      
+      return `
+        <div style="background: var(--card); border-radius: 0.5rem; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <div style="position: relative; padding-bottom: 56.25%; height: 0;">
+            <iframe 
+              src="https://www.youtube.com/embed/${youtubeId}" 
+              frameborder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowfullscreen
+              style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+            </iframe>
+          </div>
+          <div style="padding: 0.75rem;">
+            <h4 style="margin: 0 0 0.25rem 0; font-size: 0.9rem;">${title}</h4>
+            ${author ? `<p class="small muted" style="margin: 0;">${author}</p>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+  
+  // Event listeners para filtros
+  const videoSearch = document.getElementById('videoSearch');
+  const videoSection = document.getElementById('videoSection');
+  
+  if (videoSearch) {
+    videoSearch.addEventListener('input', renderVideos);
+  }
+  
+  if (videoSection) {
+    videoSection.addEventListener('change', renderVideos);
+  }
+  
+  // Renderizar quando a tab for aberta
+  document.addEventListener('click', function(e) {
+    const target = e.target;
+    if (target && target.dataset && target.dataset.tab === 'tab-videos') {
+      setTimeout(renderVideos, 100);
+    }
+  });
+  
+  // Exportar função para ser usada externamente
+  window.renderVideos = renderVideos;
 })();
