@@ -732,47 +732,81 @@
 }
 
 /* Calendário Litúrgico */
-.liturgical-calendar {
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
   margin-top: 0.5rem;
-  background: var(--card);
-  border-radius: 1rem;
-  padding: 0.8rem;
-  box-shadow: 0 8px 24px rgba(15,23,42,0.12);
+  align-items: start;
 }
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
+
+@media (max-width: 1024px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.liturgical-calendar {
+  background: var(--card);
+  border-radius: 0.5rem;
+  padding: 0.4rem;
+  box-shadow: 0 4px 12px rgba(15,23,42,0.1);
+  max-width: 10cm;
+  width: 10cm;
+  margin: 0 auto;
+  font-size: 0.7rem;
+}
+
+.upcoming-celebrations {
+  background: var(--card);
+  border-radius: 0.5rem;
+  padding: 0.6rem;
+  box-shadow: 0 4px 12px rgba(15,23,42,0.1);
+  height: fit-content;
+  max-height: 100%;
+  overflow-y: auto;
+  font-size: 0.75rem;
+}
+
+.upcoming-celebrations h3 {
+  font-size: 0.8rem;
+  margin: 0 0 0.6rem 0;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
 
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.8rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--border-subtle);
+  margin-bottom: 0.3rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .calendar-header h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.75rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.3rem;
 }
 
 .calendar-nav {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.2rem;
 }
 
 .calendar-nav button {
-  padding: 0.4rem 0.7rem;
-  border-radius: 0.5rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.3rem;
   border: 1px solid var(--border-subtle);
   background: transparent;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
 }
 
 .calendar-nav button:hover {
@@ -783,23 +817,23 @@
 .calendar-month-year {
   text-align: center;
   font-weight: 600;
-  font-size: 0.95rem;
-  margin-bottom: 0.7rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
   color: var(--primary);
 }
 
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 0.2rem;
+  gap: 0.1rem;
 }
 
 .calendar-day-header {
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.6rem;
   font-weight: 600;
   color: var(--text-muted);
-  padding: 0.35rem;
+  padding: 0.2rem;
   text-transform: uppercase;
 }
 
@@ -809,13 +843,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 0.5rem;
-  font-size: 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.65rem;
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
   background: var(--bg-soft);
   border: 1px solid transparent;
+  min-height: 1.2cm;
 }
 
 .calendar-day:hover {
@@ -926,24 +961,25 @@
 
 .event-item {
   display: flex;
-  gap: 0.75rem;
-  padding: 0.6rem;
-  margin-bottom: 0.5rem;
-  border-radius: 0.5rem;
+  gap: 0.4rem;
+  padding: 0.4rem;
+  margin-bottom: 0.3rem;
+  border-radius: 0.3rem;
   background: var(--bg-soft);
   transition: all 0.2s;
+  font-size: 0.7rem;
 }
 
 .event-item:hover {
   background: var(--primary-soft);
-  transform: translateX(4px);
+  transform: translateX(2px);
 }
 
 .event-date {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.7rem;
   color: var(--primary);
-  min-width: 60px;
+  min-width: 40px;
 }
 
 .event-details {
@@ -952,16 +988,16 @@
 
 .event-title {
   font-weight: 600;
-  font-size: 0.9rem;
-  margin-bottom: 0.15rem;
+  font-size: 0.7rem;
+  margin-bottom: 0.1rem;
 }
 
 .event-type {
-  font-size: 0.75rem;
+  font-size: 0.6rem;
   color: var(--text-muted);
   display: inline-block;
-  padding: 0.15rem 0.4rem;
-  border-radius: 0.25rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.2rem;
   background: rgba(0,0,0,0.05);
 }
 
@@ -1125,9 +1161,10 @@
 }
 
 .calendar-legend {
-  margin-top: 0.5rem;
-  padding-top: 1rem;
-  border-top: 2px solid var(--border-subtle);
+  margin-top: 0.3rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.65rem;
 }
 
 @media (max-width: 768px) {
@@ -1552,6 +1589,7 @@ body.lit-gold {
     <nav class="tabs">
       <button type="button" class="active" data-tab="tab-dashboard"><span class="dot"></span> Página inicial</button>
       <button type="button" data-tab="tab-programa"><span class="dot"></span> Programa</button>
+      <button type="button" data-tab="tab-editor"><span class="dot"></span> Editor Folheto</button>
       <button type="button" data-tab="tab-catalogo"><span class="dot"></span> Catálogo</button>
       <button type="button" data-tab="tab-historico"><span class="dot"></span> Histórico</button>
       <button type="button" data-tab="tab-ensaios"><span class="dot"></span> Ensaios</button>
@@ -1560,73 +1598,67 @@ body.lit-gold {
 
 
     <section id="tab-dashboard" class="tab active">
-      <h2>Página inicial</h2>
-      
-      <!-- Calendário Litúrgico -->
-      <div class="liturgical-calendar">
-        <div class="calendar-header">
-          <h3>📅 Calendário Litúrgico</h3>
-          <div class="calendar-nav">
-            <button type="button" id="prevMonth" title="Mês anterior">‹</button>
-            <button type="button" id="todayBtn" title="Hoje">Hoje</button>
-            <button type="button" id="nextMonth" title="Próximo mês">›</button>
+      <!-- Layout: Calendário + Celebrações lado a lado -->
+      <div class="dashboard-layout">
+        <!-- Calendário Litúrgico -->
+        <div class="liturgical-calendar">
+          <div class="calendar-header">
+            <h3>📅 Calendário Litúrgico</h3>
+            <div class="calendar-nav">
+              <button type="button" id="prevMonth" title="Mês anterior">‹</button>
+              <button type="button" id="todayBtn" title="Hoje">Hoje</button>
+              <button type="button" id="nextMonth" title="Próximo mês">›</button>
+            </div>
+          </div>
+          
+          <div class="calendar-month-year" id="calendarMonthYear"></div>
+          
+          <div class="calendar-grid" id="calendarGrid">
+            <!-- Cabeçalhos dos dias -->
+            <div class="calendar-day-header">Dom</div>
+            <div class="calendar-day-header">Seg</div>
+            <div class="calendar-day-header">Ter</div>
+            <div class="calendar-day-header">Qua</div>
+            <div class="calendar-day-header">Qui</div>
+            <div class="calendar-day-header">Sex</div>
+            <div class="calendar-day-header">Sáb</div>
+            <!-- Dias serão adicionados aqui pelo JavaScript -->
+          </div>
+          
+          <div class="calendar-legend">
+            <h4 style="font-size: 0.75rem; margin-bottom: 0.4rem; color: var(--text-main);">📖 Legenda</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.7rem;">
+              <div style="display: flex; align-items: center; gap: 0.3rem;">
+                <span style="width: 14px; height: 14px; border-radius: 3px; background: #10b981; display: inline-block;"></span>
+                <span>✓ Com programa</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.3rem;">
+                <span style="width: 14px; height: 14px; border-radius: 3px; background: var(--primary); display: inline-block;"></span>
+                <span>Hoje</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.3rem;">
+                <span style="width: 14px; height: 14px; border-radius: 3px; background: #7c3aed; display: inline-block;"></span>
+                <span>Advento/Quaresma</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.3rem;">
+                <span style="width: 14px; height: 14px; border-radius: 3px; background: #eab308; display: inline-block;"></span>
+                <span>Natal</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.3rem;">
+                <span style="width: 14px; height: 14px; border-radius: 3px; background: #f5f5f5; border: 1px solid #ddd; display: inline-block;"></span>
+                <span>Páscoa</span>
+              </div>
+            </div>
+            <p style="margin-top: 0.4rem; font-size: 0.65rem; color: var(--text-muted); font-style: italic;">
+              💡 Clique num dia com programa (✓) para ver detalhes
+            </p>
           </div>
         </div>
         
-        <div class="calendar-month-year" id="calendarMonthYear"></div>
-        
-        <div class="calendar-grid" id="calendarGrid">
-          <!-- Cabeçalhos dos dias -->
-          <div class="calendar-day-header">Dom</div>
-          <div class="calendar-day-header">Seg</div>
-          <div class="calendar-day-header">Ter</div>
-          <div class="calendar-day-header">Qua</div>
-          <div class="calendar-day-header">Qui</div>
-          <div class="calendar-day-header">Sex</div>
-          <div class="calendar-day-header">Sáb</div>
-          <!-- Dias serão adicionados aqui pelo JavaScript -->
-        </div>
-        
-        <div class="liturgical-events-list">
-          <h4>🎄 Próximas Celebrações Importantes</h4>
+        <!-- Próximas Celebrações (ao lado) -->
+        <div class="upcoming-celebrations">
+          <h3>🎄 Próximas Celebrações</h3>
           <div id="upcomingEvents"></div>
-        </div>
-        
-        <div class="calendar-legend">
-          <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; color: var(--text-main);">📖 Legenda</h4>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem; font-size: 0.8rem;">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="width: 20px; height: 20px; border-radius: 4px; background: #10b981; display: inline-block;"></span>
-              <span>✓ Com programa</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="width: 20px; height: 20px; border-radius: 4px; background: var(--primary); display: inline-block;"></span>
-              <span>Dia atual</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="width: 20px; height: 20px; border-radius: 4px; background: #7c3aed; display: inline-block;"></span>
-              <span>Advento/Quaresma</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="width: 20px; height: 20px; border-radius: 4px; background: #eab308; display: inline-block;"></span>
-              <span>Natal</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="width: 20px; height: 20px; border-radius: 4px; background: #f5f5f5; border: 1px solid #ddd; display: inline-block;"></span>
-              <span>Páscoa</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="width: 20px; height: 20px; border-radius: 4px; background: #dc2626; display: inline-block;"></span>
-              <span>Festa</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="width: 20px; height: 20px; border-radius: 4px; background: #059669; display: inline-block;"></span>
-              <span>Solenidade</span>
-            </div>
-          </div>
-          <p style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-muted); font-style: italic;">
-            💡 Clique num dia com programa (✓) para ver detalhes e editar
-          </p>
         </div>
       </div>
     </section>
