@@ -422,28 +422,38 @@
       color:black;
     }
     .leaflet-header {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:0.6rem;
-      padding:0.4rem 0.6rem;
-      border-radius:0.6rem;
-      border:1px solid #e5e7eb;
-      background:#f9fafb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.6rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 0.6rem;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      gap: 1rem;
     }
     .leaflet-header-left img {
-      max-height:80px;
-      max-width:150px;
-      object-fit:contain;
+      max-height: 80px;
+      max-width: 150px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+    .leaflet-header-center {
+      flex: 1;
+      text-align: center;
+      min-width: 0;
     }
     .leaflet-header-right img {
-      max-height:80px;
-      max-width:150px;
-      object-fit:contain;
+      max-height: 80px;
+      max-width: 150px;
+      object-fit: contain;
+      flex-shrink: 0;
     }
     .leaflet-header-center h2 {
-      margin:0;
-      font-size:1.35rem;
+      margin: 0;
+      font-size: 1.35rem;
+      word-wrap: break-word;
+      hyphens: auto;
     }
     .leaflet-header-center .meta {
       font-size:0.8rem;
@@ -534,6 +544,7 @@
       #tab-partituras,
       #tab-videos,
       #tab-ensaios,
+      #tab-folhetos,
       .toast-container { display: none !important; }
       #tab-preview,
       #previewContainer {
@@ -1602,6 +1613,7 @@ body.lit-gold {
       <button type="button" class="active" data-tab="tab-dashboard"><span class="dot"></span> Página inicial</button>
       <button type="button" data-tab="tab-programa"><span class="dot"></span> Programa</button>
       <button type="button" data-tab="tab-preview"><span class="dot"></span> Pré-visualização</button>
+      <button type="button" data-tab="tab-folhetos"><span class="dot"></span> Folhetos</button>
       <button type="button" data-tab="tab-catalogo"><span class="dot"></span> Catálogo</button>
       <button type="button" data-tab="tab-partituras"><span class="dot"></span> Partituras</button>
       <button type="button" data-tab="tab-videos"><span class="dot"></span> Vídeos</button>
@@ -1913,6 +1925,41 @@ body.lit-gold {
 </div>
 <div id="previewContainer">
         <p class="small muted">Ainda não há dados para pré-visualizar. Preenche um programa na aba anterior.</p>
+      </div>
+    </section>
+
+    <section id="tab-folhetos" class="tab">
+      <h2>📋 Folhetos Guardados</h2>
+      <p class="small">Os folhetos ficam guardados apenas neste dispositivo (localStorage).</p>
+      
+      <div class="row" style="margin-bottom: 1rem; align-items: center;">
+        <div class="col">
+          <button type="button" class="btn" id="saveCurrentLeafletBtn">💾 Guardar Folheto Atual</button>
+        </div>
+        <div class="col text-right">
+          <small id="leafletsSummary" class="small muted"></small>
+        </div>
+      </div>
+      
+      <div id="savedLeafletsContainer" class="small muted">
+        Ainda não há folhetos guardados.
+      </div>
+      
+      <div style="margin-top: 1rem;">
+        <button type="button" class="btn btn-delete small" id="clearAllLeafletsBtn">🗑️ Limpar TODOS os Folhetos</button>
+      </div>
+      
+      <!-- Modal de visualização de folheto -->
+      <div id="leafletViewModal" class="modal-backdrop" style="display:none;">
+        <div class="modal" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+          <h3 id="leafletViewTitle">Folheto</h3>
+          <div id="leafletViewContent" style="background: white; padding: 1rem; border-radius: 0.5rem;">
+          </div>
+          <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button type="button" class="btn secondary" id="leafletViewPrint">🖨️ Imprimir</button>
+            <button type="button" class="btn secondary" id="leafletViewClose">Fechar</button>
+          </div>
+        </div>
       </div>
     </section>
 

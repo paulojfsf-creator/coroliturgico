@@ -993,12 +993,29 @@ function exportSongUsageCsv() {
 }
 
 function clearSongUsageHistory() {
-  if (!confirm('Tens a certeza que queres apagar o histórico de cânticos?')) return;
+  loadSongUsageHistory();
+  
+  if (!songUsageHistory || songUsageHistory.length === 0) {
+    showToast('Não há histórico de cânticos para limpar.', 'info');
+    return;
+  }
+  
+  const count = songUsageHistory.length;
+  
+  if (!confirm(`⚠️ Tens a certeza que queres apagar o histórico de ${count} cântico(s)?\n\nEsta ação não pode ser desfeita.`)) {
+    return;
+  }
+  
   songUsageHistory = [];
+  
   try {
     localStorage.removeItem('coroSongUsage_v1');
-  } catch(e) {}
+  } catch(e) {
+    console.error('Erro ao limpar localStorage:', e);
+  }
+  
   renderSongUsageHistory();
+  showToast(`Histórico de ${count} cântico(s) eliminado com sucesso.`, 'success');
 }
 
 function exportFullStateJson() {
@@ -3922,4 +3939,389 @@ window.showUseDropdown = function(btn, partLabels, titulo){
   });
   
   observer.observe(imgPreview, { attributes: true, attributeFilter: ['src'] });
+})();
+
+// ============================================
+// SISTEMA DE FOLHETOS GUARDADOS
+// ============================================
+(function() {
+  let savedLeaflets = [];
+  
+  // Carregar folhetos do localStorage
+  function loadSavedLeaflets() {
+    try {
+      const raw = localStorage.getItem('coroSavedLeaflets_v1');
+      savedLeaflets = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      console.error('Erro ao carregar folhetos:', e);
+      savedLeaflets = [];
+    }
+    return savedLeaflets;
+  }
+  
+  // Guardar folhetos no localStorage
+  function saveSavedLeaflets() {
+    try {
+      localStorage.setItem('coroSavedLeaflets_v1', JSON.stringify(savedLeaflets));
+    } catch (e) {
+      console.error('Erro ao guardar folhetos:', e);
+      showToast('Erro ao guardar folheto. LocalStorage pode estar cheio.', 'error');
+    }
+  }
+  
+  // Renderizar lista de folhetos guardados
+  function renderSavedLeaflets() {
+    loadSavedLeaflets();
+    const container = document.getElementById('savedLeafletsContainer');
+    const summaryEl = document.getElementById('leafletsSummary');
+    
+    if (!container) return;
+    
+    if (!savedLeaflets || savedLeaflets.length === 0) {
+      container.classList.add('muted');
+      container.innerHTML = 'Ainda não há folhetos guardados.';
+      if (summaryEl) summaryEl.textContent = '';
+      return;
+    }
+    
+    // Ordenar por data (mais recente primeiro)
+    const sorted = savedLeaflets.slice().sort((a, b) => {
+      return (b.savedAt || '').localeCompare(a.savedAt || '');
+    });
+    
+    let html = '<table><thead><tr>' +
+      '<th>Título</th>' +
+      '<th>Data</th>' +
+      '<th>Guardado em</th>' +
+      '<th>Ações</th>' +
+      '</tr></thead><tbody>';
+    
+    sorted.forEach((leaflet, idx) => {
+      const realIndex = savedLeaflets.indexOf(leaflet);
+      const savedDate = new Date(leaflet.savedAt);
+      const savedDateStr = savedDate.toLocaleDateString('pt-PT', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      html += '<tr>' +
+        '<td>' + (leaflet.title || '—') + '</td>' +
+        '<td>' + (leaflet.date || '—') + '</td>' +
+        '<td>' + savedDateStr + '</td>' +
+        '<td>' +
+          '<button type="button" class="btn secondary small" data-view-leaflet="' + realIndex + '" style="margin-right:0.3rem;">👁️ Ver</button>' +
+          '<button type="button" class="btn secondary small" data-print-leaflet="' + realIndex + '" style="margin-right:0.3rem;">🖨️ Imprimir</button>' +
+          '<button type="button" class="btn btn-delete small" data-delete-leaflet="' + realIndex + '">🗑️ Eliminar</button>' +
+        '</td>' +
+      '</tr>';
+    });
+    
+    html += '</tbody></table>';
+    container.classList.remove('muted');
+    container.innerHTML = html;
+    
+    if (summaryEl) {
+      summaryEl.textContent = `${savedLeaflets.length} folheto(s) guardado(s)`;
+    }
+    
+    // Event listeners para botões
+    container.querySelectorAll('[data-view-leaflet]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-view-leaflet'), 10);
+        viewLeaflet(idx);
+      });
+    });
+    
+    container.querySelectorAll('[data-print-leaflet]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-print-leaflet'), 10);
+        printLeaflet(idx);
+      });
+    });
+    
+    container.querySelectorAll('[data-delete-leaflet]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-delete-leaflet'), 10);
+        deleteLeaflet(idx);
+      });
+    });
+  }
+  
+  // Guardar folheto atual
+  function saveCurrentLeaflet() {
+    const previewContainer = document.getElementById('previewContainer');
+    if (!previewContainer || !previewContainer.innerHTML.trim() || 
+        previewContainer.innerHTML.includes('Ainda não há dados')) {
+      showToast('Não há folheto para guardar. Crie um programa primeiro.', 'error');
+      return;
+    }
+    
+    const dateInput = document.getElementById('date');
+    const liturgicalTitleInput = document.getElementById('liturgicalTitle');
+    
+    if (!dateInput || !dateInput.value) {
+      showToast('Escolha uma data no programa primeiro.', 'error');
+      return;
+    }
+    
+    // Capturar o HTML do folheto
+    const leafletHTML = previewContainer.innerHTML;
+    
+    // Criar objeto do folheto
+    const leaflet = {
+      id: Date.now(),
+      savedAt: new Date().toISOString(),
+      date: dateInput.value,
+      title: liturgicalTitleInput ? liturgicalTitleInput.value : '',
+      html: leafletHTML
+    };
+    
+    // Adicionar à lista
+    savedLeaflets.push(leaflet);
+    
+    // Guardar
+    saveSavedLeaflets();
+    
+    // Re-renderizar
+    renderSavedLeaflets();
+    
+    showToast('Folheto guardado com sucesso!', 'success');
+  }
+  
+  // Ver folheto
+  function viewLeaflet(idx) {
+    if (idx < 0 || idx >= savedLeaflets.length) return;
+    
+    const leaflet = savedLeaflets[idx];
+    const modal = document.getElementById('leafletViewModal');
+    const titleEl = document.getElementById('leafletViewTitle');
+    const contentEl = document.getElementById('leafletViewContent');
+    
+    if (!modal || !titleEl || !contentEl) return;
+    
+    titleEl.textContent = leaflet.title || 'Folheto';
+    contentEl.innerHTML = leaflet.html;
+    
+    modal.style.display = 'flex';
+    
+    // Guardar índice atual para imprimir
+    modal.dataset.currentLeafletIdx = idx;
+  }
+  
+  // Imprimir folheto
+  function printLeaflet(idx) {
+    if (idx < 0 || idx >= savedLeaflets.length) return;
+    
+    const leaflet = savedLeaflets[idx];
+    
+    // Criar janela temporária para imprimir
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>${leaflet.title || 'Folheto'}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 1cm 1cm 1cm 2cm;
+          }
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 12pt;
+            line-height: 1.4;
+            color: #000;
+            background: #fff;
+            margin: 0;
+            padding: 0;
+          }
+          .leaflet-cols {
+            column-count: 2;
+            column-gap: 1.4rem;
+            font-size: 0.85rem;
+          }
+          .leaflet-song {
+            break-inside: avoid;
+            break-inside: avoid-column;
+            page-break-inside: avoid;
+            -webkit-column-break-inside: avoid;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 0.5rem;
+          }
+          .leaflet-song-title {
+            font-weight: 600;
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+          .leaflet-song-meta {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.15rem;
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+          .leaflet-song-lyrics {
+            margin: 0;
+            white-space: pre-wrap;
+            font-family: inherit;
+            font-size: 0.8rem;
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+          .leaflet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.6rem;
+            padding: 0.4rem 0.6rem;
+            border-radius: 0.6rem;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            gap: 1rem;
+          }
+          .leaflet-header-left img,
+          .leaflet-header-right img {
+            max-height: 80px;
+            max-width: 150px;
+            object-fit: contain;
+            flex-shrink: 0;
+          }
+          .leaflet-header-center {
+            flex: 1;
+            text-align: center;
+            min-width: 0;
+          }
+          .leaflet-header-center h2 {
+            margin: 0;
+            font-size: 1.35rem;
+            word-wrap: break-word;
+            hyphens: auto;
+          }
+          .leaflet-header-center .meta {
+            font-size: 0.8rem;
+            color: #4b5563;
+          }
+          .leaflet-line {
+            height: 3px;
+            width: 65%;
+            margin: 0.35rem auto 0.15rem auto;
+            border-radius: 999px;
+            background: #e5e7eb;
+          }
+          .leaflet-note {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 0.4rem;
+          }
+          .leaflet-footer {
+            position: absolute;
+            bottom: 0.5cm;
+            left: 1.6cm;
+            right: 1cm;
+            font-size: 0.7rem;
+            color: #9ca3af;
+            display: flex;
+            justify-content: space-between;
+          }
+        </style>
+      </head>
+      <body>
+        ${leaflet.html}
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  }
+  
+  // Eliminar folheto
+  function deleteLeaflet(idx) {
+    if (idx < 0 || idx >= savedLeaflets.length) return;
+    
+    const leaflet = savedLeaflets[idx];
+    
+    if (!confirm(`Tens a certeza que queres eliminar o folheto "${leaflet.title || 'Sem título'}"?`)) {
+      return;
+    }
+    
+    savedLeaflets.splice(idx, 1);
+    saveSavedLeaflets();
+    renderSavedLeaflets();
+    
+    showToast('Folheto eliminado com sucesso.', 'success');
+  }
+  
+  // Limpar todos os folhetos
+  function clearAllLeaflets() {
+    loadSavedLeaflets();
+    
+    if (!savedLeaflets || savedLeaflets.length === 0) {
+      showToast('Não há folhetos para eliminar.', 'info');
+      return;
+    }
+    
+    const count = savedLeaflets.length;
+    
+    if (!confirm(`⚠️ ATENÇÃO: Vai eliminar TODOS os ${count} folhetos guardados!\n\nEsta ação NÃO PODE ser desfeita.\n\nTem a certeza absoluta?`)) {
+      return;
+    }
+    
+    savedLeaflets = [];
+    saveSavedLeaflets();
+    renderSavedLeaflets();
+    
+    showToast(`${count} folheto(s) eliminado(s) com sucesso.`, 'success');
+  }
+  
+  // Event listeners
+  const saveBtn = document.getElementById('saveCurrentLeafletBtn');
+  const clearAllBtn = document.getElementById('clearAllLeafletsBtn');
+  const modalCloseBtn = document.getElementById('leafletViewClose');
+  const modalPrintBtn = document.getElementById('leafletViewPrint');
+  
+  if (saveBtn) {
+    saveBtn.addEventListener('click', saveCurrentLeaflet);
+  }
+  
+  if (clearAllBtn) {
+    clearAllBtn.addEventListener('click', clearAllLeaflets);
+  }
+  
+  if (modalCloseBtn) {
+    modalCloseBtn.addEventListener('click', () => {
+      const modal = document.getElementById('leafletViewModal');
+      if (modal) modal.style.display = 'none';
+    });
+  }
+  
+  if (modalPrintBtn) {
+    modalPrintBtn.addEventListener('click', () => {
+      const modal = document.getElementById('leafletViewModal');
+      const idx = modal ? parseInt(modal.dataset.currentLeafletIdx, 10) : -1;
+      if (idx >= 0) {
+        printLeaflet(idx);
+      }
+    });
+  }
+  
+  // Renderizar quando a tab for aberta
+  document.addEventListener('click', function(e) {
+    const target = e.target;
+    if (target && target.dataset && target.dataset.tab === 'tab-folhetos') {
+      setTimeout(renderSavedLeaflets, 100);
+    }
+  });
+  
+  // Exportar funções
+  window.renderSavedLeaflets = renderSavedLeaflets;
+  window.saveCurrentLeaflet = saveCurrentLeaflet;
 })();
