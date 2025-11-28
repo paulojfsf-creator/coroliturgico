@@ -796,28 +796,128 @@ function getFeastForDate(date) {
       return true;
     });
 
+    // Carregar histórico de uso
+    loadSongUsageHistory();
+
     let html = '<table><thead><tr>' +
-      '<th>Título</th><th>Tema</th><th>Autor</th><th>Partitura</th><th>Vídeo</th>' +
+      '<th>Título</th><th>Tema</th><th>Autor</th><th>Partitura</th><th>Vídeo</th><th>Utilizações</th>' +
       '</tr></thead><tbody>';
-    filtered.forEach(song => {
+    filtered.forEach((song, idx) => {
       const titulo = song.Título || song.Titulo || song.titulo || '';
       const tema = song.Tema || song.tema || '';
       const autor = song.Autor || song.autor || '';
       const partitura = song.partitura || song.Partitura || '';
       const video = song.video || song.Vídeo || song.Video || '';
+      
+      // Contar quantas vezes foi usado
+      const usageCount = songUsageHistory.filter(u => u.title === titulo).length;
+      
+      // Pegar últimas 3 datas
+      const usages = songUsageHistory
+        .filter(u => u.title === titulo)
+        .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+        .slice(0, 3);
+      
+      let usageHtml = '';
+      if (usageCount === 0) {
+        usageHtml = '<span class="muted">Nunca usado</span>';
+      } else {
+        const lastDate = usages[0] ? new Date(usages[0].date).toLocaleDateString('pt-PT', {day: '2-digit', month: '2-digit'}) : '';
+        usageHtml = '<button type="button" class="btn secondary small" data-show-usage="' + idx + '" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">' +
+          '📊 ' + usageCount + 'x (últ: ' + lastDate + ')' +
+          '</button>';
+      }
+      
       html += '<tr>' +
         '<td>' + titulo + '</td>' +
         '<td>' + tema + '</td>' +
         '<td>' + autor + '</td>' +
         '<td>' + (partitura ? '<a href="' + partitura + '" target="_blank">Partitura</a>' : '<span class="muted">—</span>') + '</td>' +
         '<td>' + (video ? '<a href="' + video + '" target="_blank">Vídeo</a>' : '<span class="muted">—</span>') + '</td>' +
+        '<td>' + usageHtml + '</td>' +
       '</tr>';
     });
     html += '</tbody></table>';
     songsTableContainer.classList.remove('muted');
     songsTableContainer.innerHTML = html;
 
+    // Event listeners para os botões de histórico
+    songsTableContainer.querySelectorAll('[data-show-usage]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-show-usage'), 10);
+        const song = filtered[idx];
+        if (song) {
+          showSongUsageModal(song);
+        }
+      });
+    });
+
     populateSongDropdowns();
+  }
+
+  // Mostrar modal de histórico de uso de cântico
+  function showSongUsageModal(song) {
+    const titulo = song.Título || song.Titulo || song.titulo || '';
+    const modal = document.getElementById('songUsageModal');
+    const modalTitle = document.getElementById('songUsageModalTitle');
+    const modalContent = document.getElementById('songUsageModalContent');
+    
+    if (!modal || !modalTitle || !modalContent) return;
+    
+    // Carregar histórico
+    loadSongUsageHistory();
+    
+    // Filtrar usos deste cântico
+    const usages = songUsageHistory
+      .filter(u => u.title === titulo)
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    
+    modalTitle.textContent = 'Histórico: ' + titulo;
+    
+    if (usages.length === 0) {
+      modalContent.innerHTML = '<p class="muted">Este cântico ainda não foi usado em nenhum programa.</p>';
+    } else {
+      let html = '<p class="small" style="margin-bottom: 0.5rem;">Este cântico foi usado <strong>' + usages.length + ' vez(es)</strong>:</p>';
+      html += '<table style="width: 100%;"><thead><tr>' +
+        '<th>Data</th><th>Secção</th><th>Programa</th>' +
+        '</tr></thead><tbody>';
+      
+      usages.forEach(usage => {
+        const date = usage.date ? new Date(usage.date).toLocaleDateString('pt-PT', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }) : '—';
+        const section = usage.section || '—';
+        
+        // Tentar encontrar o programa correspondente
+        let programTitle = '—';
+        const program = history.find(h => h.date === usage.date);
+        if (program) {
+          programTitle = program.title || '—';
+        }
+        
+        html += '<tr>' +
+          '<td>' + date + '</td>' +
+          '<td>' + section + '</td>' +
+          '<td style="font-size: 0.85rem;">' + programTitle + '</td>' +
+        '</tr>';
+      });
+      
+      html += '</tbody></table>';
+      modalContent.innerHTML = html;
+    }
+    
+    modal.style.display = 'flex';
+  }
+
+  // Event listener para fechar modal
+  const songUsageModalClose = document.getElementById('songUsageModalClose');
+  if (songUsageModalClose) {
+    songUsageModalClose.addEventListener('click', () => {
+      const modal = document.getElementById('songUsageModal');
+      if (modal) modal.style.display = 'none';
+    });
   }
 
   function refreshFilters() {
@@ -879,91 +979,10 @@ function getFeastForDate(date) {
   // ---- Histórico ----
   
 // ---- Histórico de cânticos (por utilização) ----
+// FUNÇÃO DESATIVADA - O histórico de cânticos agora é mostrado no catálogo (coluna "Utilizações")
 function renderSongUsageHistory() {
-    loadSongUsageHistory();
-    const container = document.getElementById('songHistoryTableContainer');
-    const monthInput = document.getElementById('songHistoryMonth');
-    const sectionSelect = document.getElementById('songHistorySection');
-    const searchInput = document.getElementById('songHistorySearch');
-    const summaryEl = document.getElementById('songHistorySummary');
-
-    if (!container) return;
-
-    let filtered = songUsageHistory.slice();
-
-    // Filtro por mês
-    if (monthInput && monthInput.value) {
-      const [y, m] = monthInput.value.split('-');
-      filtered = filtered.filter(function(e) {
-        return e.date && e.date.startsWith(monthInput.value);
-      });
-    }
-
-    // Filtro por secção
-    if (sectionSelect && sectionSelect.value) {
-      filtered = filtered.filter(function(e) {
-        return e.section === sectionSelect.value;
-      });
-    }
-
-    // Pesquisa por título
-    const term = (searchInput && searchInput.value || '').toLowerCase();
-    if (term) {
-      filtered = filtered.filter(function(e) {
-        return (e.title || '').toLowerCase().indexOf(term) !== -1;
-      });
-    }
-
-    if (!filtered.length) {
-      container.classList.add('muted');
-      container.innerHTML = 'Ainda não há cânticos registados com estes filtros.';
-      if (summaryEl) summaryEl.textContent = '';
-      return;
-    }
-
-    // Construir conjunto de secções para o dropdown
-    if (sectionSelect && !sectionSelect.dataset._filled) {
-      const set = new Set();
-      songUsageHistory.forEach(function(e) {
-        if (e.section) set.add(e.section);
-      });
-      Array.from(set).sort().forEach(function(sec) {
-        const opt = document.createElement('option');
-        opt.value = sec;
-        opt.textContent = sec;
-        sectionSelect.appendChild(opt);
-      });
-      sectionSelect.dataset._filled = '1';
-    }
-
-    // Agregar por data/parte/título (já vem agregado, mas por segurança)
-    filtered.sort(function(a, b) {
-      const cmp = String(b.date || '').localeCompare(String(a.date || ''));
-      if (cmp !== 0) return cmp;
-      const sa = (a.section || '').localeCompare(a.section || '');
-      if (sa !== 0) return sa;
-      return (a.title || '').localeCompare(b.title || '');
-    });
-
-    let totalCount = 0;
-    filtered.forEach(function(e) { totalCount += e.count || 1; });
-
-    let html = '<table><thead><tr><th>Data</th><th>Secção</th><th>Cântico</th><th>Vezes</th></tr></thead><tbody>';
-    filtered.forEach(function(e) {
-      html += '<tr>' +
-        '<td>' + (e.date || '—') + '</td>' +
-        '<td>' + (e.section || '—') + '</td>' +
-        '<td>' + (e.title || '—') + '</td>' +
-        '<td>' + (e.count || 1) + '</td>' +
-      '</tr>';
-    });
-    html += '</tbody></table>';
-    container.classList.remove('muted');
-    container.innerHTML = html;
-
-    if (summaryEl) {
-      summaryEl.textContent = filtered.length + ' registo(s), ' + totalCount + ' utilização(ões) no total.';
-    }
+  // Função desativada - o histórico agora aparece no catálogo
+  return;
 }
 
 function exportSongUsageCsv() {
@@ -2615,25 +2634,6 @@ function init() {
     if (typeof initRehearsalManager === 'function') {
       initRehearsalManager();
     }
-
-    // Histórico de cânticos: ligar eventos
-    const monthInput = document.getElementById('songHistoryMonth');
-    const sectionSelect = document.getElementById('songHistorySection');
-    const searchInput = document.getElementById('songHistorySearch');
-    const exportBtn = document.getElementById('songHistoryExportCsvBtn');
-    const clearBtn = document.getElementById('songHistoryClearBtn');
-    const fullStateExportBtn = document.getElementById('fullStateExportBtn');
-    const fullStateImportBtn = document.getElementById('fullStateImportBtn');
-
-    if (monthInput) monthInput.addEventListener('change', renderSongUsageHistory);
-    if (sectionSelect) sectionSelect.addEventListener('change', renderSongUsageHistory);
-    if (searchInput) searchInput.addEventListener('input', renderSongUsageHistory);
-    if (exportBtn) exportBtn.addEventListener('click', exportSongUsageCsv);
-    if (clearBtn) clearBtn.addEventListener('click', clearSongUsageHistory);
-    if (fullStateExportBtn) fullStateExportBtn.addEventListener('click', exportFullStateJson);
-    if (fullStateImportBtn) fullStateImportBtn.addEventListener('click', importFullStateJson);
-
-    renderSongUsageHistory();
   }
 
   window.addEventListener('DOMContentLoaded', init);

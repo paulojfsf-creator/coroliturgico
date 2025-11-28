@@ -2014,51 +2014,10 @@ body.lit-gold {
       <p class="small">Os programas guardados ficam apenas neste dispositivo (localStorage).</p>
       <div id="historyContainer" class="small muted">Ainda não há domingos guardados.</div>
       
+
       <div style="margin-top: 1rem;">
         <button type="button" class="btn btn-delete small" id="clearAllHistoryBtn">🗑️ Limpar TODO o Histórico de Domingos</button>
       </div>
-
-      <hr style="margin:1.5rem 0; opacity:0.35;">
-
-      <h2>Histórico de cânticos</h2>
-      <p class="small">Lista de todos os cânticos usados nos programas, apenas neste dispositivo.</p>
-
-      <div class="row">
-        <div class="col">
-          <label for="songHistoryMonth">Mês</label>
-          <input type="month" id="songHistoryMonth">
-        </div>
-        <div class="col">
-          <label for="songHistorySection">Secção</label>
-          <select id="songHistorySection">
-            <option value="">Todas</option>
-          </select>
-        </div>
-        <div class="col">
-          <label for="songHistorySearch">Pesquisar</label>
-          <input type="text" id="songHistorySearch" placeholder="Título do cântico…">
-        </div>
-      </div>
-
-      <div class="row" style="margin-top:0.75rem; align-items:center;">
-        <div class="col">
-          <button type="button" class="btn secondary small" id="songHistoryExportCsvBtn">Exportar CSV</button>
-          <button type="button" class="btn secondary small" id="songHistoryClearBtn">Limpar histórico de cânticos</button>
-          <button type="button" class="btn secondary small" id="fullStateExportBtn">Exportar tudo (JSON)</button>
-          <button type="button" class="btn secondary small" id="fullStateImportBtn">Importar JSON</button>
-        </div>
-        <div class="col" style="text-align:right;">
-          <small id="songHistorySummary" class="small muted"></small>
-        </div>
-      </div>
-
-      <div id="songHistoryTableContainer" class="small muted" style="margin-top:0.75rem;">
-        Ainda não há cânticos registados.
-      </div>
-      <details style="margin-top:0.75rem;">
-        <summary class="small">Importar JSON (colar dados exportados anteriormente)</summary>
-        <textarea id="fullStateImportArea" class="small" style="width:100%; min-height:120px; margin-top:0.5rem;" placeholder='Cola aqui o JSON exportado e clica em "Importar JSON".'></textarea>
-      </details>
 
     </section>
 
@@ -2306,6 +2265,18 @@ body.lit-gold {
     <div class="modal-actions">
       <button type="button" class="btn secondary" id="songEditCancelBtn">Cancelar</button>
       <button type="button" class="btn" id="songEditSaveInsertBtn">Guardar e inserir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Histórico de Uso do Cântico -->
+<div id="songUsageModal" class="modal-backdrop" style="display: none;">
+  <div class="modal" style="max-width: 600px;">
+    <h3 id="songUsageModalTitle">Histórico de Utilização</h3>
+    <div id="songUsageModalContent" style="max-height: 400px; overflow-y: auto;">
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" id="songUsageModalClose">Fechar</button>
     </div>
   </div>
 </div>
