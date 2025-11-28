@@ -468,22 +468,33 @@
       font-size:0.85rem;
     }
     .leaflet-song {
-      break-inside:avoid;
-      margin-bottom:0.5rem;
+      break-inside: avoid;
+      break-inside: avoid-column;
+      page-break-inside: avoid;
+      -webkit-column-break-inside: avoid;
+      display: inline-block;
+      width: 100%;
+      margin-bottom: 0.5rem;
     }
     .leaflet-song-title {
-      font-weight:600;
+      font-weight: 600;
+      break-inside: avoid;
+      page-break-inside: avoid;
     }
     .leaflet-song-meta {
-      font-size:0.75rem;
-      color:#6b7280;
-      margin-bottom:0.15rem;
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-bottom: 0.15rem;
+      break-inside: avoid;
+      page-break-inside: avoid;
     }
     .leaflet-song-lyrics {
-      margin:0;
-      white-space:pre-wrap;
-      font-family:inherit;
-      font-size:0.8rem;
+      margin: 0;
+      white-space: pre-wrap;
+      font-family: inherit;
+      font-size: 0.8rem;
+      break-inside: avoid;
+      page-break-inside: avoid;
     }
     .leaflet-song-lyrics .chord {
       color:#b91c1c;
