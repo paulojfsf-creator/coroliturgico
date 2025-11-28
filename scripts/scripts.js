@@ -1109,17 +1109,29 @@ function loadHistory() {
         '<td>' + (rec.date || '—') + '</td>' +
         '<td>' + (rec.title || '—') + '</td>' +
         '<td>' + (rec.season || '—') + ' / ' + (rec.cycle || '—') + '</td>' +
-        '<td><button type="button" class="btn secondary small" data-hist-idx="' + idx + '">Carregar</button></td>' +
+        '<td>' +
+          '<button type="button" class="btn secondary small" data-hist-idx="' + idx + '" style="margin-right:0.5rem;">📂 Carregar</button>' +
+          '<button type="button" class="btn btn-delete small" data-delete-idx="' + idx + '" title="Eliminar este programa">🗑️ Eliminar</button>' +
+        '</td>' +
       '</tr>';
     });
     html += '</tbody></table>';
     container.classList.remove('muted');
     container.innerHTML = html;
 
+    // Botões de carregar
     container.querySelectorAll('button[data-hist-idx]').forEach(btn => {
       btn.addEventListener('click', () => {
         const idx = parseInt(btn.getAttribute('data-hist-idx'), 10);
         loadProgramFromHistory(idx);
+      });
+    });
+
+    // Botões de eliminar
+    container.querySelectorAll('button[data-delete-idx]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-delete-idx'), 10);
+        deleteProgramFromHistory(idx);
       });
     });
 
@@ -1191,6 +1203,34 @@ function loadHistory() {
     if (!rec) return;
     applyProgramToForm(rec);
     showToast('Programa carregado do histórico.', 'success');
+  }
+
+  function deleteProgramFromHistory(idx) {
+    const rec = history[idx];
+    if (!rec) return;
+    
+    const dateFormatted = rec.date || 'este programa';
+    const title = rec.title || '';
+    
+    if (!confirm(`Tem a certeza que deseja eliminar o programa de ${dateFormatted}?\n\n"${title}"\n\nEsta ação não pode ser desfeita.`)) {
+      return;
+    }
+    
+    // Remover do array
+    history.splice(idx, 1);
+    
+    // Guardar
+    saveHistory();
+    
+    // Re-renderizar
+    renderHistory();
+    
+    // Atualizar calendário (remover o ✓)
+    if (window.updateCalendarAfterSave) {
+      window.updateCalendarAfterSave();
+    }
+    
+    showToast('Programa eliminado com sucesso.', 'success');
   }
 
   const programForm = document.getElementById('programForm');
@@ -3049,7 +3089,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
   // Verificar se existe programa para uma data
   function checkIfHasProgram(dateStr) {
     try {
-      const historyData = localStorage.getItem('coroHistory_v1');
+      const historyData = localStorage.getItem('coroLiturgicoHistory_v2');
       if (!historyData) return false;
       
       const history = JSON.parse(historyData);
@@ -3064,7 +3104,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
   // Obter programa de uma data específica
   function getProgramForDay(dateStr) {
     try {
-      const historyData = localStorage.getItem('coroHistory_v1');
+      const historyData = localStorage.getItem('coroLiturgicoHistory_v2');
       if (!historyData) return null;
       
       const history = JSON.parse(historyData);
@@ -3421,6 +3461,94 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     if (e.key === 'coroHistory_v1') {
       renderCalendar();
       renderUpcomingEvents();
+    }
+  });
+})();
+
+// ===== CONTROLES DE IMPRESSÃO E MARGEM =====
+(function() {
+  // Aplicar margens personalizadas
+  function applyCustomMargins() {
+    const top = document.getElementById('marginTop').value;
+    const bottom = document.getElementById('marginBottom').value;
+    const left = document.getElementById('marginLeft').value;
+    const right = document.getElementById('marginRight').value;
+    
+    document.documentElement.style.setProperty('--print-margin-top', top + 'cm');
+    document.documentElement.style.setProperty('--print-margin-bottom', bottom + 'cm');
+    document.documentElement.style.setProperty('--print-margin-left', left + 'cm');
+    document.documentElement.style.setProperty('--print-margin-right', right + 'cm');
+    
+    if (window.showToast) {
+      window.showToast('Margens aplicadas! Use Ctrl+P para imprimir.', 'success');
+    }
+  }
+  
+  // Restaurar margens padrão
+  function resetMargins() {
+    document.getElementById('marginTop').value = 1.5;
+    document.getElementById('marginBottom').value = 1;
+    document.getElementById('marginLeft').value = 1.5;
+    document.getElementById('marginRight').value = 1;
+    
+    applyCustomMargins();
+  }
+  
+  // Toggle modo editável
+  function toggleEditableMode() {
+    const checkbox = document.getElementById('editableMode');
+    const container = document.getElementById('previewContainer');
+    
+    if (!container) return;
+    
+    if (checkbox.checked) {
+      container.contentEditable = true;
+      container.style.border = '2px dashed #4f46e5';
+      container.style.padding = '0.5rem';
+      
+      if (window.showToast) {
+        window.showToast('✏️ Modo edição ativado! Clique no texto para editar.', 'info');
+      }
+    } else {
+      container.contentEditable = false;
+      container.style.border = 'none';
+      container.style.padding = '0';
+      
+      if (window.showToast) {
+        window.showToast('Modo edição desativado.', 'info');
+      }
+    }
+  }
+  
+  // Event listeners
+  const applyBtn = document.getElementById('applyMargins');
+  const resetBtn = document.getElementById('resetMargins');
+  const editableCheckbox = document.getElementById('editableMode');
+  
+  if (applyBtn) {
+    applyBtn.addEventListener('click', applyCustomMargins);
+  }
+  
+  if (resetBtn) {
+    resetBtn.addEventListener('click', resetMargins);
+  }
+  
+  if (editableCheckbox) {
+    editableCheckbox.addEventListener('change', toggleEditableMode);
+  }
+  
+  // Aplicar margens iniciais
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applyCustomMargins);
+  } else {
+    applyCustomMargins();
+  }
+  
+  // Atalho de teclado para impressão
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+      // O navegador já cuida da impressão, apenas aplicamos as margens
+      applyCustomMargins();
     }
   });
 })();
