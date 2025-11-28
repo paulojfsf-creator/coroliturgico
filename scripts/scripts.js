@@ -1929,7 +1929,14 @@ document.getElementById('assemblySheetBtnNoLyrics').addEventListener('click', ()
       });
       text += '%0A';
     }
-    if (notes) text += 'Notas: ' + encodeURIComponent(notes) + '%0A';
+    if (notes) text += 'Notas: ' + encodeURIComponent(notes) + '%0A%0A';
+    
+    // Adicionar link das partituras
+    text += '━━━━━━━━━━━━━━━━━━━━%0A';
+    text += '📁 Partituras disponíveis em:%0A';
+    text += 'https://drive.google.com/drive/folders/10VhjmmmvGcUzg8gdIT3Rlu5iDTFqlJy8%0A%0A';
+    text += '💡 Abre o link para descarregar as partituras necessárias.%0A%0A';
+    text += 'Nos vemos no ensaio! 🎶';
 
     const waUrl = 'https://wa.me/?text=' + text;
     window.open(waUrl, '_blank');
