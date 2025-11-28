@@ -878,8 +878,8 @@ function getFeastForDate(date) {
 
   // ---- Histórico ----
   
-  // ---- Histórico de cânticos (por utilização) ----
-  function renderSongUsageHistory() {
+// ---- Histórico de cânticos (por utilização) ----
+function renderSongUsageHistory() {
     loadSongUsageHistory();
     const container = document.getElementById('songHistoryTableContainer');
     const monthInput = document.getElementById('songHistoryMonth');
@@ -964,43 +964,44 @@ function getFeastForDate(date) {
     if (summaryEl) {
       summaryEl.textContent = filtered.length + ' registo(s), ' + totalCount + ' utilização(ões) no total.';
     }
-  }
+}
 
-  function exportSongUsageCsv() {
-    loadSongUsageHistory();
-    if (!songUsageHistory.length) return;
-    let csv = 'data,secao,cantico,contador\n';
-    songUsageHistory.forEach(function(e) {
-      csv += [
-        e.date || '',
-        e.section || '',
-        e.title || '',
-        e.count || 1
-      ].map(function(v) {
-        const s = String(v).replace(/"/g, '""');
-        return '"' + s + '"';
-      }).join(',') + '\n';
-    });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'historico_canticos.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
+function exportSongUsageCsv() {
+  loadSongUsageHistory();
+  if (!songUsageHistory.length) return;
+  let csv = 'data,secao,cantico,contador\n';
+  songUsageHistory.forEach(function(e) {
+    csv += [
+      e.date || '',
+      e.section || '',
+      e.title || '',
+      e.count || 1
+    ].map(function(v) {
+      const s = String(v).replace(/"/g, '""');
+      return '"' + s + '"';
+    }).join(',') + '\n';
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'historico_canticos.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
-  function clearSongUsageHistory() {
-    if (!confirm('Tens a certeza que queres apagar o histórico de cânticos?')) return;
-    songUsageHistory = [];
-    try {
-      localStorage.removeItem('coroSongUsage_v1');
-    } catch(e) {}
-    renderSongUsageHistory();
-  }
-  function exportFullStateJson() {
+function clearSongUsageHistory() {
+  if (!confirm('Tens a certeza que queres apagar o histórico de cânticos?')) return;
+  songUsageHistory = [];
+  try {
+    localStorage.removeItem('coroSongUsage_v1');
+  } catch(e) {}
+  renderSongUsageHistory();
+}
+
+function exportFullStateJson() {
     const dateInput = document.getElementById('date');
     const state = {
       version: '1.0',
@@ -1030,115 +1031,116 @@ function getFeastForDate(date) {
     URL.revokeObjectURL(url);
   }
 
-  function importFullStateJson() {
-    const textarea = document.getElementById('fullStateImportArea');
-    if (!textarea || !textarea.value.trim()) {
-      if (typeof showToast === 'function') showToast('Cola primeiro o JSON exportado.', 'error');
-      return;
-    }
-    let parsed = null;
-    try {
-      parsed = JSON.parse(textarea.value);
-    } catch (e) {
-      if (typeof showToast === 'function') showToast('JSON inválido.', 'error');
-      return;
-    }
-    if (!parsed || typeof parsed !== 'object') {
-      if (typeof showToast === 'function') showToast('JSON inválido.', 'error');
-      return;
-    }
-
-    if (!confirm('Isto vai substituir o programa atual e o histórico de cânticos neste dispositivo. Continuar?')) return;
-
-    // Restaurar programa
-    if (parsed.program) {
-      (window.PROGRAM_PARTS || []).forEach(function(p) {
-        const sel = document.getElementById(p.id);
-        if (!sel) return;
-        const val = parsed.program[p.id];
-        if (val) {
-          let opt = Array.from(sel.options).find(function(o) { return o.value === val; });
-          if (!opt) {
-            opt = document.createElement('option');
-            opt.value = val;
-            opt.textContent = val;
-            sel.appendChild(opt);
-          }
-          sel.value = val;
-        } else {
-          sel.value = '';
-        }
-      });
-      if (typeof updatePreview === 'function') updatePreview();
-    }
-
-    // Restaurar histórico de cânticos
-    if (parsed.songUsage && Array.isArray(parsed.songUsage)) {
-      songUsageHistory = parsed.songUsage.slice();
-      try {
-        localStorage.setItem('coroSongUsage_v1', JSON.stringify(songUsageHistory));
-      } catch (e) {}
-      renderSongUsageHistory();
-    }
-
-    if (typeof showToast === 'function') showToast('Estado importado com sucesso.', 'success');
+function importFullStateJson() {
+  const textarea = document.getElementById('fullStateImportArea');
+  if (!textarea || !textarea.value.trim()) {
+    if (typeof showToast === 'function') showToast('Cola primeiro o JSON exportado.', 'error');
+    return;
   }
+  let parsed = null;
+  try {
+    parsed = JSON.parse(textarea.value);
+  } catch (e) {
+    if (typeof showToast === 'function') showToast('JSON inválido.', 'error');
+    return;
+  }
+  if (!parsed || typeof parsed !== 'object') {
+    if (typeof showToast === 'function') showToast('JSON inválido.', 'error');
+    return;
+  }
+
+  if (!confirm('Isto vai substituir o programa atual e o histórico de cânticos neste dispositivo. Continuar?')) return;
+
+  // Restaurar programa
+  if (parsed.program) {
+    (window.PROGRAM_PARTS || []).forEach(function(p) {
+      const sel = document.getElementById(p.id);
+      if (!sel) return;
+      const val = parsed.program[p.id];
+      if (val) {
+        let opt = Array.from(sel.options).find(function(o) { return o.value === val; });
+        if (!opt) {
+          opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = val;
+          sel.appendChild(opt);
+        }
+        sel.value = val;
+      } else {
+        sel.value = '';
+      }
+    });
+    if (typeof updatePreview === 'function') updatePreview();
+  }
+
+  // Restaurar histórico de cânticos
+  if (parsed.songUsage && Array.isArray(parsed.songUsage)) {
+    songUsageHistory = parsed.songUsage.slice();
+    try {
+      localStorage.setItem('coroSongUsage_v1', JSON.stringify(songUsageHistory));
+    } catch (e) {}
+    renderSongUsageHistory();
+  }
+
+  if (typeof showToast === 'function') showToast('Estado importado com sucesso.', 'success');
+}
 
 function loadHistory() {
-    try {
-      const raw = localStorage.getItem('coroLiturgicoHistory_v2');
-      history = raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      history = [];
-    }
+  try {
+    const raw = localStorage.getItem('coroLiturgicoHistory_v2');
+    history = raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    history = [];
   }
-  function saveHistory() {
-    localStorage.setItem('coroLiturgicoHistory_v2', JSON.stringify(history));
-  }
-  function renderHistory() {
-    const container = document.getElementById('historyContainer');
-    if (!history.length) {
-      container.classList.add('muted');
-      container.innerHTML = 'Ainda não há domingos guardados.';
-      refreshRehearsalPrograms();
-      return;
-    }
-    let html = '<table><thead><tr><th>Data</th><th>Título</th><th>Tempo / Ciclo</th><th>Ações</th></tr></thead><tbody>';
-    history.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')).forEach((rec, idx) => {
-      html += '<tr>' +
-        '<td>' + (rec.date || '—') + '</td>' +
-        '<td>' + (rec.title || '—') + '</td>' +
-        '<td>' + (rec.season || '—') + ' / ' + (rec.cycle || '—') + '</td>' +
-        '<td>' +
-          '<button type="button" class="btn secondary small" data-hist-idx="' + idx + '" style="margin-right:0.5rem;">📂 Carregar</button>' +
-          '<button type="button" class="btn btn-delete small" data-delete-idx="' + idx + '" title="Eliminar este programa">🗑️ Eliminar</button>' +
-        '</td>' +
-      '</tr>';
-    });
-    html += '</tbody></table>';
-    container.classList.remove('muted');
-    container.innerHTML = html;
+}
 
-    // Botões de carregar
-    container.querySelectorAll('button[data-hist-idx]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const idx = parseInt(btn.getAttribute('data-hist-idx'), 10);
-        loadProgramFromHistory(idx);
-      });
-    });
+function saveHistory() {
+}
 
-    // Botões de eliminar
-    container.querySelectorAll('button[data-delete-idx]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const idx = parseInt(btn.getAttribute('data-delete-idx'), 10);
-        deleteProgramFromHistory(idx);
-      });
-    });
-
+function renderHistory() {
+  const container = document.getElementById('historyContainer');
+  if (!history.length) {
+    container.classList.add('muted');
+    container.innerHTML = 'Ainda não há domingos guardados.';
     refreshRehearsalPrograms();
+    return;
   }
+  let html = '<table><thead><tr><th>Data</th><th>Título</th><th>Tempo / Ciclo</th><th>Ações</th></tr></thead><tbody>';
+  history.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')).forEach((rec, idx) => {
+    html += '<tr>' +
+      '<td>' + (rec.date || '—') + '</td>' +
+      '<td>' + (rec.title || '—') + '</td>' +
+      '<td>' + (rec.season || '—') + ' / ' + (rec.cycle || '—') + '</td>' +
+      '<td>' +
+        '<button type="button" class="btn secondary small" data-hist-idx="' + idx + '" style="margin-right:0.5rem;">📂 Carregar</button>' +
+        '<button type="button" class="btn btn-delete small" data-delete-idx="' + idx + '" title="Eliminar este programa">🗑️ Eliminar</button>' +
+      '</td>' +
+    '</tr>';
+  });
+  html += '</tbody></table>';
+  container.classList.remove('muted');
+  container.innerHTML = html;
 
-  function getProgramFromForm() {
+  // Botões de carregar
+  container.querySelectorAll('button[data-hist-idx]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.getAttribute('data-hist-idx'), 10);
+      loadProgramFromHistory(idx);
+    });
+  });
+
+  // Botões de eliminar
+  container.querySelectorAll('button[data-delete-idx]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.getAttribute('data-delete-idx'), 10);
+      deleteProgramFromHistory(idx);
+    });
+  });
+
+  refreshRehearsalPrograms();
+}
+
+function getProgramFromForm() {
     const dateInput = document.getElementById('date');
     if (!dateInput.value) {
       showToast('Escolhe uma data.', 'error');
@@ -3829,4 +3831,95 @@ window.showUseDropdown = function(btn, partLabels, titulo){
   
   // Exportar função para ser usada externamente
   window.renderVideos = renderVideos;
+})();
+
+// ============================================
+// UPLOAD DA IMAGEM DO DOMINGO
+// ============================================
+(function() {
+  const uploadInput = document.getElementById('uploadSundayImage');
+  const imgPreview = document.getElementById('folhetoImagemDomingo');
+  
+  if (!uploadInput || !imgPreview) return;
+  
+  // Carregar imagem guardada do localStorage ao iniciar
+  const savedImage = localStorage.getItem('sundayImage');
+  if (savedImage) {
+    imgPreview.src = savedImage;
+    imgPreview.style.display = 'block';
+  }
+  
+  // Processar upload de nova imagem
+  uploadInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    
+    if (!file) {
+      return;
+    }
+    
+    // Verificar se é uma imagem
+    if (!file.type.startsWith('image/')) {
+      showToast('Por favor selecione um ficheiro de imagem válido.', 'error');
+      return;
+    }
+    
+    // Verificar tamanho (máx 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('A imagem é muito grande. Máximo 2MB.', 'error');
+      return;
+    }
+    
+    // Ler o ficheiro e converter para base64
+    const reader = new FileReader();
+    
+    reader.onload = function(event) {
+      const imageDataUrl = event.target.result;
+      
+      // Mostrar a imagem
+      imgPreview.src = imageDataUrl;
+      imgPreview.style.display = 'block';
+      
+      // Guardar no localStorage
+      try {
+        localStorage.setItem('sundayImage', imageDataUrl);
+        showToast('Imagem carregada com sucesso!', 'success');
+      } catch (err) {
+        console.error('Erro ao guardar imagem:', err);
+        showToast('Erro ao guardar imagem. Pode ser muito grande.', 'error');
+      }
+    };
+    
+    reader.onerror = function() {
+      showToast('Erro ao ler o ficheiro de imagem.', 'error');
+    };
+    
+    reader.readAsDataURL(file);
+  });
+  
+  // Adicionar botão para remover a imagem
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'btn secondary small';
+  removeBtn.textContent = '🗑️ Remover imagem';
+  removeBtn.style.marginTop = '0.5rem';
+  removeBtn.style.display = savedImage ? 'inline-block' : 'none';
+  
+  removeBtn.addEventListener('click', function() {
+    imgPreview.src = '';
+    imgPreview.style.display = 'none';
+    uploadInput.value = '';
+    localStorage.removeItem('sundayImage');
+    removeBtn.style.display = 'none';
+    showToast('Imagem removida.', 'info');
+  });
+  
+  // Inserir botão após o input
+  uploadInput.parentNode.appendChild(removeBtn);
+  
+  // Atualizar visibilidade do botão quando a imagem muda
+  const observer = new MutationObserver(function() {
+    removeBtn.style.display = imgPreview.src ? 'inline-block' : 'none';
+  });
+  
+  observer.observe(imgPreview, { attributes: true, attributeFilter: ['src'] });
 })();
