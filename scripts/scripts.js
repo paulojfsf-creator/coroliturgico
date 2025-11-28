@@ -864,6 +864,9 @@ function getFeastForDate(date) {
     
     if (!modal || !modalTitle || !modalContent) return;
     
+    // Guardar título no modal para usar no botão de apagar
+    modal.dataset.currentSongTitle = titulo;
+    
     // Carregar histórico
     loadSongUsageHistory();
     
@@ -905,10 +908,69 @@ function getFeastForDate(date) {
       });
       
       html += '</tbody></table>';
+      
+      // Adicionar botão de apagar histórico deste cântico
+      html += '<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">' +
+        '<button type="button" class="btn btn-delete small" id="deleteSongHistoryBtn">' +
+        '🗑️ Apagar histórico deste cântico' +
+        '</button>' +
+        '<p class="small muted" style="margin-top: 0.5rem;">Remove todas as ' + usages.length + ' utilizações deste cântico do histórico.</p>' +
+        '</div>';
+      
       modalContent.innerHTML = html;
+      
+      // Event listener para o botão de apagar
+      const deleteBtn = document.getElementById('deleteSongHistoryBtn');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', function() {
+          deleteSongHistory(titulo);
+        });
+      }
     }
     
     modal.style.display = 'flex';
+  }
+
+  // Função para apagar histórico de um cântico específico
+  function deleteSongHistory(songTitle) {
+    if (!songTitle) return;
+    
+    // Carregar histórico
+    loadSongUsageHistory();
+    
+    // Contar quantas vezes será apagado
+    const count = songUsageHistory.filter(u => u.title === songTitle).length;
+    
+    if (count === 0) {
+      showToast('Não há histórico para apagar.', 'info');
+      return;
+    }
+    
+    // Confirmar
+    if (!confirm(`⚠️ Tens a certeza que queres apagar o histórico deste cântico?\n\nSerão removidas ${count} utilização(ões) de "${songTitle}".\n\nEsta ação não pode ser desfeita.`)) {
+      return;
+    }
+    
+    // Filtrar para remover este cântico
+    songUsageHistory = songUsageHistory.filter(u => u.title !== songTitle);
+    
+    // Guardar
+    try {
+      localStorage.setItem('coroSongUsage_v1', JSON.stringify(songUsageHistory));
+    } catch (e) {
+      console.error('Erro ao guardar histórico:', e);
+      showToast('Erro ao guardar alterações.', 'error');
+      return;
+    }
+    
+    // Fechar modal
+    const modal = document.getElementById('songUsageModal');
+    if (modal) modal.style.display = 'none';
+    
+    // Re-renderizar catálogo para atualizar a coluna de utilizações
+    renderSongsTable();
+    
+    showToast(`Histórico de "${songTitle}" apagado com sucesso (${count} utilização(ões)).`, 'success');
   }
 
   // Event listener para fechar modal
@@ -2637,6 +2699,86 @@ function init() {
   }
 
   window.addEventListener('DOMContentLoaded', init);
+
+  // ============================================
+  // PESQUISA DE PARTITURAS
+  // ============================================
+  (function() {
+    const searchInput = document.getElementById('partituraSearch');
+    
+    if (!searchInput) return;
+    
+    // Debounce para não fazer pesquisas a cada tecla
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      
+      const query = searchInput.value.trim();
+      
+      if (query.length < 2) {
+        // Reset iframes para vista normal se pesquisa vazia
+        resetDriveFrames();
+        return;
+      }
+      
+      // Esperar 500ms após parar de escrever
+      searchTimeout = setTimeout(function() {
+        searchInDriveFrames(query);
+      }, 500);
+    });
+    
+    function searchInDriveFrames(query) {
+      // Nota: Por limitações de segurança (CORS), não podemos controlar
+      // diretamente o conteúdo dos iframes do Google Drive.
+      // O que fazemos é abrir as pastas com a pesquisa em novas abas.
+      
+      const folder1 = '10VhjmmmvGcUzg8gdIT3Rlu5iDTFqlJy8';
+      const folder2 = '10YDH1vUq67KE1Qd3trMukyacLTjwpVis';
+      
+      // Criar URLs de pesquisa
+      const searchUrl1 = `https://drive.google.com/drive/search?q=${encodeURIComponent(query)}%20parent:${folder1}`;
+      const searchUrl2 = `https://drive.google.com/drive/search?q=${encodeURIComponent(query)}%20parent:${folder2}`;
+      
+      // Mostrar mensagem com links
+      showSearchResults(query, searchUrl1, searchUrl2);
+    }
+    
+    function showSearchResults(query, url1, url2) {
+      // Criar/atualizar div de resultados
+      let resultsDiv = document.getElementById('partituraSearchResults');
+      
+      if (!resultsDiv) {
+        resultsDiv = document.createElement('div');
+        resultsDiv.id = 'partituraSearchResults';
+        resultsDiv.style.cssText = 'margin: 1rem 0; padding: 1rem; background: var(--bg-soft); border-radius: 0.5rem; border-left: 4px solid var(--accent);';
+        searchInput.parentNode.appendChild(resultsDiv);
+      }
+      
+      resultsDiv.innerHTML = `
+        <p style="margin: 0 0 0.75rem 0;"><strong>🔍 Resultados para: "${query}"</strong></p>
+        <p class="small" style="margin: 0 0 0.5rem 0;">Para melhor experiência, abre a pesquisa diretamente no Google Drive:</p>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <a href="${url1}" target="_blank" class="btn secondary small">
+            🔗 Pesquisar na Pasta Principal
+          </a>
+          <a href="${url2}" target="_blank" class="btn secondary small">
+            🔗 Pesquisar na Pasta Adicional
+          </a>
+        </div>
+        <p class="small muted" style="margin: 0.75rem 0 0 0;">
+          💡 Dica: Podes também usar a caixa de pesquisa dentro de cada pasta do Drive abaixo.
+        </p>
+      `;
+    }
+    
+    function resetDriveFrames() {
+      const resultsDiv = document.getElementById('partituraSearchResults');
+      if (resultsDiv) {
+        resultsDiv.remove();
+      }
+    }
+  })();
 
 
 // ==== catalog-actions.js ====

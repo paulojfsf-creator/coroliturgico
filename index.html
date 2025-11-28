@@ -2061,21 +2061,57 @@ body.lit-gold {
       <h2>📁 Partituras</h2>
       <p class="small">Acesso direto às partituras do coro no Google Drive.</p>
       
+      <!-- Campo de pesquisa -->
       <div style="margin-bottom: 1rem;">
-        <a href="https://drive.google.com/drive/folders/10VhjmmmvGcUzg8gdIT3Rlu5iDTFqlJy8?usp=drive_link" 
-           target="_blank" 
-           class="btn secondary small"
-           style="display: inline-flex; align-items: center; gap: 0.5rem;">
-          🔗 Abrir no Google Drive
-        </a>
+        <label for="partituraSearch">🔍 Pesquisar partitura</label>
+        <input type="text" id="partituraSearch" placeholder="Escreve o nome do cântico ou partitura...">
+        <p class="small muted" style="margin-top: 0.5rem;">A pesquisa funciona dentro de cada pasta do Google Drive abaixo.</p>
       </div>
 
-      <!-- Google Drive Embed -->
-      <div style="border: 1px solid var(--border-subtle); border-radius: 0.5rem; overflow: hidden; background: white;">
-        <iframe 
-          src="https://drive.google.com/embeddedfolderview?id=10VhjmmmvGcUzg8gdIT3Rlu5iDTFqlJy8#grid" 
-          style="width: 100%; height: 600px; border: none;">
-        </iframe>
+      <!-- Pasta 1: Original -->
+      <div style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">📂 Partituras - Pasta Principal</h3>
+        
+        <div style="margin-bottom: 1rem;">
+          <a href="https://drive.google.com/drive/folders/10VhjmmmvGcUzg8gdIT3Rlu5iDTFqlJy8?usp=drive_link" 
+             target="_blank" 
+             class="btn secondary small"
+             style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            🔗 Abrir no Google Drive
+          </a>
+        </div>
+
+        <!-- Google Drive Embed 1 -->
+        <div style="border: 1px solid var(--border-subtle); border-radius: 0.5rem; overflow: hidden; background: white;">
+          <iframe 
+            id="driveFrame1"
+            src="https://drive.google.com/embeddedfolderview?id=10VhjmmmvGcUzg8gdIT3Rlu5iDTFqlJy8#grid" 
+            style="width: 100%; height: 500px; border: none;">
+          </iframe>
+        </div>
+      </div>
+
+      <!-- Pasta 2: Nova -->
+      <div style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">📂 Partituras - Pasta Adicional</h3>
+        
+        <div style="margin-bottom: 1rem;">
+          <a href="https://drive.google.com/drive/folders/10YDH1vUq67KE1Qd3trMukyacLTjwpVis?usp=drive_link" 
+             target="_blank" 
+             class="btn secondary small"
+             style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            🔗 Abrir no Google Drive
+          </a>
+        </div>
+
+        <!-- Google Drive Embed 2 -->
+        <div style="border: 1px solid var(--border-subtle); border-radius: 0.5rem; overflow: hidden; background: white;">
+          <iframe 
+            id="driveFrame2"
+            src="https://drive.google.com/embeddedfolderview?id=10YDH1vUq67KE1Qd3trMukyacLTjwpVis#grid" 
+            style="width: 100%; height: 500px; border: none;">
+          </iframe>
+        </div>
       </div>
 
       <div style="margin-top: 1rem;">
@@ -2085,11 +2121,12 @@ body.lit-gold {
           </summary>
           <div style="padding: 1rem; font-size: 0.9rem;">
             <ul>
+              <li><strong>Pesquisar:</strong> Usa o campo acima para procurar em ambas as pastas</li>
               <li><strong>Visualizar:</strong> Clica numa partitura para abrir</li>
               <li><strong>Download:</strong> Botão de download no topo direito</li>
               <li><strong>Imprimir:</strong> Menu "Ficheiro" → "Imprimir"</li>
-              <li><strong>Pesquisar:</strong> Usa a caixa de pesquisa no Drive</li>
               <li><strong>Organização:</strong> Partituras organizadas por tempo litúrgico e alfabeticamente</li>
+              <li><strong>Duas pastas:</strong> Temos 2 pastas diferentes com partituras - podes procurar em ambas</li>
             </ul>
           </div>
         </details>
