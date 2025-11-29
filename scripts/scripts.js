@@ -4914,18 +4914,25 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       const day = String(today.getDate()).padStart(2, '0');
       const dateStr = `${year}-${month}-${day}`;
       
+      console.log('[Leituras] A buscar para data:', dateStr);
+      
       // A API Evangelizo funciona com datas no formato YYYY-MM-DD
       const url = `https://publication.evangelizo.ws/PT/days/${dateStr}`;
+      console.log('[Leituras] URL:', url);
       
       const response = await fetch(url);
+      console.log('[Leituras] Response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Erro ao buscar leituras');
+        throw new Error('Erro HTTP: ' + response.status);
       }
       
       const data = await response.json();
+      console.log('[Leituras] Dados recebidos:', data);
       
       if (!data || !data.data) {
-        throw new Error('Dados inválidos');
+        console.error('[Leituras] Estrutura de dados inválida:', data);
+        throw new Error('Dados inválidos - estrutura inesperada');
       }
       
       const readings = {
@@ -4934,8 +4941,11 @@ window.showUseDropdown = function(btn, partLabels, titulo){
         readings: []
       };
       
+      console.log('[Leituras] Título litúrgico:', readings.liturgicalTitle);
+      
       // Primeira Leitura
       if (data.data.reading_lt) {
+        console.log('[Leituras] Primeira leitura encontrada');
         readings.readings.push({
           type: 'Primeira Leitura',
           reference: data.data.reading_lt.title || '',
@@ -4945,6 +4955,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       
       // Salmo
       if (data.data.psalm) {
+        console.log('[Leituras] Salmo encontrado');
         readings.readings.push({
           type: 'Salmo Responsorial',
           reference: data.data.psalm.title || '',
@@ -4955,6 +4966,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       
       // Segunda Leitura (se existir)
       if (data.data.reading_lt_2) {
+        console.log('[Leituras] Segunda leitura encontrada');
         readings.readings.push({
           type: 'Segunda Leitura',
           reference: data.data.reading_lt_2.title || '',
@@ -4964,6 +4976,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       
       // Evangelho
       if (data.data.gospel) {
+        console.log('[Leituras] Evangelho encontrado');
         readings.readings.push({
           type: 'Evangelho',
           reference: data.data.gospel.title || '',
@@ -4971,9 +4984,16 @@ window.showUseDropdown = function(btn, partLabels, titulo){
         });
       }
       
+      console.log('[Leituras] Total de leituras:', readings.readings.length);
+      
+      if (readings.readings.length === 0) {
+        throw new Error('Nenhuma leitura encontrada nos dados da API');
+      }
+      
       return readings;
     } catch (e) {
-      console.error('Erro ao buscar de Evangelizo:', e);
+      console.error('[Leituras] Erro detalhado:', e);
+      console.error('[Leituras] Stack:', e.stack);
       throw e;
     }
   }
@@ -5079,25 +5099,48 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     const loading = document.getElementById('readingsLoading');
     const error = document.getElementById('readingsError');
     const btn = document.getElementById('loadReadingsBtn');
+    const debugDiv = document.getElementById('readingsDebug');
+    const debugContent = document.getElementById('readingsDebugContent');
     
     if (!container || !loading || !error) return;
+    
+    // Mostra debug
+    if (debugDiv && debugContent) {
+      debugDiv.style.display = 'block';
+      debugContent.innerHTML = 'A iniciar carregamento...<br>';
+    }
     
     // Verifica cache primeiro
     const cached = loadFromCache();
     if (cached) {
+      if (debugContent) {
+        debugContent.innerHTML += 'Cache encontrado! A usar dados em cache.<br>';
+      }
       currentReadings = cached;
       renderReadings(cached);
       return;
+    }
+    
+    if (debugContent) {
+      debugContent.innerHTML += 'Sem cache válido. A carregar da API...<br>';
     }
     
     // Mostra loading
     container.style.display = 'none';
     error.style.display = 'none';
     loading.style.display = 'block';
+    loading.innerHTML = `
+      <div style="margin-bottom: 0.5rem;">⏳ A carregar leituras...</div>
+      <div class="small muted">Pode demorar alguns segundos</div>
+    `;
     if (btn) btn.disabled = true;
     
     try {
       const readings = await fetchReadingsEvangelizo();
+      
+      if (debugContent) {
+        debugContent.innerHTML += `Sucesso! ${readings.readings.length} leituras recebidas.<br>`;
+      }
       
       currentReadings = readings;
       saveToCache(readings);
@@ -5106,10 +5149,45 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       container.style.display = 'block';
       renderReadings(readings);
       
+      // Esconde debug após sucesso
+      setTimeout(() => {
+        if (debugDiv) debugDiv.style.display = 'none';
+      }, 3000);
+      
     } catch (e) {
-      console.error('Erro ao carregar leituras:', e);
+      console.error('[Leituras] Erro ao carregar:', e);
+      
+      if (debugContent) {
+        debugContent.innerHTML += `ERRO: ${e.message}<br>`;
+        debugContent.innerHTML += `Vê a consola (F12) para mais detalhes.<br>`;
+      }
+      
       loading.style.display = 'none';
       error.style.display = 'block';
+      
+      // Mostra mensagem de erro mais detalhada
+      const errorDiv = document.getElementById('readingsError');
+      if (errorDiv) {
+        errorDiv.innerHTML = `
+          <div style="background: #fee; border: 1px solid #fcc; padding: 1rem; border-radius: 0.5rem;">
+            <strong>⚠️ Erro ao carregar leituras</strong>
+            <p class="small" style="margin: 0.5rem 0;">
+              <strong>Erro:</strong> ${e.message}
+            </p>
+            <p class="small" style="margin: 0.5rem 0 0 0;">
+              Podes consultar as leituras em:
+            </p>
+            <ul class="small" style="margin: 0.5rem 0 0 1rem;">
+              <li><a href="https://liturgia.pt" target="_blank">liturgia.pt</a></li>
+              <li><a href="https://www.dehonianos.org/portal/" target="_blank">dehonianos.org</a></li>
+              <li><a href="https://www.capuchinhos.org/liturgia-diaria/" target="_blank">capuchinhos.org</a></li>
+            </ul>
+            <p class="small" style="margin: 0.5rem 0 0 0;">
+              <strong>Dica:</strong> Abre a consola do browser (F12) e procura por mensagens em vermelho para mais detalhes.
+            </p>
+          </div>
+        `;
+      }
     } finally {
       if (btn) btn.disabled = false;
     }
@@ -5151,18 +5229,25 @@ window.showUseDropdown = function(btn, partLabels, titulo){
   // Buscar leituras para uma data específica
   async function fetchReadingsForDate(dateStr) {
     try {
+      console.log('[Leituras Programa] A buscar para data:', dateStr);
+      
       // dateStr deve estar no formato YYYY-MM-DD
       const url = `https://publication.evangelizo.ws/PT/days/${dateStr}`;
+      console.log('[Leituras Programa] URL:', url);
       
       const response = await fetch(url);
+      console.log('[Leituras Programa] Response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Erro ao buscar leituras');
+        throw new Error('Erro HTTP: ' + response.status);
       }
       
       const data = await response.json();
+      console.log('[Leituras Programa] Dados recebidos:', data);
       
       if (!data || !data.data) {
-        throw new Error('Dados inválidos');
+        console.error('[Leituras Programa] Estrutura de dados inválida:', data);
+        throw new Error('Dados inválidos - estrutura inesperada');
       }
       
       const readings = {
@@ -5171,8 +5256,11 @@ window.showUseDropdown = function(btn, partLabels, titulo){
         readings: []
       };
       
+      console.log('[Leituras Programa] Título litúrgico:', readings.liturgicalTitle);
+      
       // Primeira Leitura
       if (data.data.reading_lt) {
+        console.log('[Leituras Programa] Primeira leitura encontrada');
         readings.readings.push({
           type: 'Primeira Leitura',
           reference: data.data.reading_lt.title || '',
@@ -5182,6 +5270,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       
       // Salmo
       if (data.data.psalm) {
+        console.log('[Leituras Programa] Salmo encontrado');
         readings.readings.push({
           type: 'Salmo Responsorial',
           reference: data.data.psalm.title || '',
@@ -5192,6 +5281,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       
       // Segunda Leitura (se existir)
       if (data.data.reading_lt_2) {
+        console.log('[Leituras Programa] Segunda leitura encontrada');
         readings.readings.push({
           type: 'Segunda Leitura',
           reference: data.data.reading_lt_2.title || '',
@@ -5201,6 +5291,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       
       // Evangelho
       if (data.data.gospel) {
+        console.log('[Leituras Programa] Evangelho encontrado');
         readings.readings.push({
           type: 'Evangelho',
           reference: data.data.gospel.title || '',
@@ -5208,9 +5299,16 @@ window.showUseDropdown = function(btn, partLabels, titulo){
         });
       }
       
+      console.log('[Leituras Programa] Total de leituras:', readings.readings.length);
+      
+      if (readings.readings.length === 0) {
+        throw new Error('Nenhuma leitura encontrada nos dados da API');
+      }
+      
       return readings;
     } catch (e) {
-      console.error('Erro ao buscar leituras para data:', e);
+      console.error('[Leituras Programa] Erro detalhado:', e);
+      console.error('[Leituras Programa] Stack:', e.stack);
       throw e;
     }
   }
