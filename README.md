@@ -1,24 +1,38 @@
 # 🎵 Gestão Litúrgica - Coro Paroquial São João Batista
-## Versão 14.6 - Correção de Erros (Novembro 2024)
+## Versão 15.0 - Simplificação (Novembro 2024)
 
 ---
 
-## 🔧 V14.6: CORREÇÃO DE ERRO CRÍTICO
+## 🔄 V15.0: SIMPLIFICAÇÃO E LIMPEZA
 
-### Bug Corrigido:
-❌ **Erro:** `Uncaught TypeError: can't access property "value", document.getElementById(...) is null`
+### Mudanças desta versão:
 
-**Causa:** Código obsoleto da v13 tentava aceder a campos de margem que foram removidos na v14.0
+**Removido:**
+- ❌ **Leituras do Dia** (página inicial)
+- ❌ **Leituras no Programa** (por data)
+- ❌ Código JavaScript de leituras (~700 linhas)
+- ❌ API Evangelizo.org
+- ❌ Sistema de cache de leituras
 
-**Solução:** Removido código obsoleto de `applyCustomMargins()` e controlos de margem
+**Melhorado:**
+- ✅ **Botão de Remover Imagem** do domingo
+- ✅ **Preview da imagem** antes de guardar
+- ✅ **Validação de ficheiro** (tamanho e tipo)
+- ✅ **Gestão visual** da imagem
 
-### O que foi removido:
-- ❌ Função `applyCustomMargins()` (obsoleta)
-- ❌ Função `resetMargins()` (obsoleta)
-- ❌ Função `toggleEditableMode()` (obsoleta)
-- ❌ Event listeners para controlos removidos
+### Funcionalidade de Imagem:
 
-**Status:** ✅ App agora carrega sem erros na consola
+**Como funciona:**
+1. Upload de imagem do domingo
+2. Preview automático da imagem
+3. Botão "🗑️ Remover Imagem" aparece
+4. Imagem fica guardada em localStorage
+5. Carrega automaticamente ao abrir a app
+
+**Validações:**
+- Máximo 2MB por imagem
+- Apenas ficheiros de imagem (JPG, PNG, WebP, etc.)
+- Confirmação antes de remover
 
 ---
 
@@ -118,23 +132,20 @@ Todas as funções relacionadas com preview foram mantidas:
 
 ## 📊 FUNCIONALIDADES POR VERSÃO
 
-### Versão 14.6 (Atual) - CORREÇÃO DE BUGS
-- ✅ **Corrigido erro:** `applyCustomMargins is null`
-- ✅ **Removido código obsoleto** da v13
-- ✅ **App carrega sem erros** na consola
-- ✅ **Performance melhorada**
+### Versão 15.0 (Atual) - SIMPLIFICAÇÃO
+- ❌ **Removidas leituras do dia** (simplificação)
+- ✅ **Botão remover imagem** do domingo
+- ✅ **Preview de imagem** automático
+- ✅ **Validação de ficheiros** (2MB máx)
+- ✅ **Código mais leve** (~700 linhas removidas)
 
-### Versão 14.5
-- ✅ **Leituras na tab Programa** ao selecionar data
-- ✅ **Cache por data** (múltiplas datas guardadas)
-- ✅ **Contexto imediato** para escolher cânticos
-- ✅ **2 locais** - Página inicial (hoje) + Programa (data selecionada)
+### Versão 14.7
+- ✅ Corrigido: `updateDashboard` scope
+- ✅ Removido código obsoleto de margens
 
-### Versão 14.4
-- ✅ **Leituras do dia** carregadas automaticamente
-- ✅ **API Evangelizo.org** em português
-- ✅ **Cache de 12 horas** para performance
-- ✅ **Copiar leituras** para área de transferência
+### Versão 14.6
+- ✅ Corrigido erro `applyCustomMargins`
+- ✅ Console limpo
 
 ### Versão 14.3
 - ✅ **Cânticos personalizados** com upload de partituras

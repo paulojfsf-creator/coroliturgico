@@ -4769,698 +4769,102 @@ window.showUseDropdown = function(btn, partLabels, titulo){
   });
 })();
 
-// ===== LEITURAS DO DIA =====
+// ===== GESTÃO DE IMAGEM DO DOMINGO =====
 (function() {
-  const CACHE_KEY = 'coroReadings_cache';
-  const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 horas
+  const uploadInput = document.getElementById('uploadSundayImage');
+  const removeBtn = document.getElementById('removeSundayImage');
+  const preview = document.getElementById('sundayImagePreview');
+  const previewImg = document.getElementById('sundayImagePreviewImg');
   
-  let currentReadings = null;
+  // Carregar imagem guardada ao iniciar
+  function loadSavedImage() {
+    const saved = localStorage.getItem('sundayImage');
+    if (saved && preview && previewImg && removeBtn) {
+      previewImg.src = saved;
+      preview.style.display = 'block';
+      removeBtn.style.display = 'inline-block';
+    }
+  }
   
-  // Carregar leituras do cache
-  function loadFromCache() {
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (!cached) return null;
+  // Event listener para upload
+  if (uploadInput) {
+    uploadInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
       
-      const data = JSON.parse(cached);
-      const now = Date.now();
+      // Validar tipo de ficheiro
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor, seleciona um ficheiro de imagem válido.');
+        return;
+      }
       
-      // Verifica se cache ainda é válido e se é do mesmo dia
-      if (data.timestamp && (now - data.timestamp) < CACHE_DURATION) {
-        const cacheDate = new Date(data.date).toDateString();
-        const today = new Date().toDateString();
+      // Validar tamanho (máx 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('A imagem é muito grande. O tamanho máximo é 2MB.');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const dataUrl = event.target.result;
         
-        if (cacheDate === today) {
-          return data.readings;
-        }
-      }
-      
-      return null;
-    } catch (e) {
-      console.error('Erro ao carregar cache:', e);
-      return null;
-    }
-  }
-  
-  // Guardar leituras no cache
-  function saveToCache(readings) {
-    try {
-      const data = {
-        readings: readings,
-        date: new Date().toISOString(),
-        timestamp: Date.now()
-      };
-      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-    } catch (e) {
-      console.error('Erro ao guardar cache:', e);
-    }
-  }
-  
-  // Formatar data para display
-  function formatDate() {
-    const today = new Date();
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    return today.toLocaleDateString('pt-PT', options);
-  }
-  
-  // Buscar leituras usando a API Evangelizo.org
-  async function fetchReadingsEvangelizo() {
-    try {
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, '0');
-      const day = String(today.getDate()).padStart(2, '0');
-      const dateStr = `${year}-${month}-${day}`;
-      
-      console.log('[Leituras] A buscar para data:', dateStr);
-      
-      // A API Evangelizo funciona com datas no formato YYYY-MM-DD
-      const url = `https://publication.evangelizo.ws/PT/days/${dateStr}`;
-      console.log('[Leituras] URL:', url);
-      
-      const response = await fetch(url);
-      console.log('[Leituras] Response status:', response.status);
-      
-      if (!response.ok) {
-        throw new Error('Erro HTTP: ' + response.status);
-      }
-      
-      const data = await response.json();
-      console.log('[Leituras] Dados recebidos:', data);
-      
-      if (!data || !data.data) {
-        console.error('[Leituras] Estrutura de dados inválida:', data);
-        throw new Error('Dados inválidos - estrutura inesperada');
-      }
-      
-      const readings = {
-        liturgicalTitle: data.data.liturgic_title || 'Liturgia do Dia',
-        liturgicalColor: data.data.color || '',
-        readings: []
-      };
-      
-      console.log('[Leituras] Título litúrgico:', readings.liturgicalTitle);
-      
-      // Primeira Leitura
-      if (data.data.reading_lt) {
-        console.log('[Leituras] Primeira leitura encontrada');
-        readings.readings.push({
-          type: 'Primeira Leitura',
-          reference: data.data.reading_lt.title || '',
-          text: data.data.reading_lt.text || ''
-        });
-      }
-      
-      // Salmo
-      if (data.data.psalm) {
-        console.log('[Leituras] Salmo encontrado');
-        readings.readings.push({
-          type: 'Salmo Responsorial',
-          reference: data.data.psalm.title || '',
-          text: data.data.psalm.text || '',
-          refrain: data.data.psalm.refrain || ''
-        });
-      }
-      
-      // Segunda Leitura (se existir)
-      if (data.data.reading_lt_2) {
-        console.log('[Leituras] Segunda leitura encontrada');
-        readings.readings.push({
-          type: 'Segunda Leitura',
-          reference: data.data.reading_lt_2.title || '',
-          text: data.data.reading_lt_2.text || ''
-        });
-      }
-      
-      // Evangelho
-      if (data.data.gospel) {
-        console.log('[Leituras] Evangelho encontrado');
-        readings.readings.push({
-          type: 'Evangelho',
-          reference: data.data.gospel.title || '',
-          text: data.data.gospel.text || ''
-        });
-      }
-      
-      console.log('[Leituras] Total de leituras:', readings.readings.length);
-      
-      if (readings.readings.length === 0) {
-        throw new Error('Nenhuma leitura encontrada nos dados da API');
-      }
-      
-      return readings;
-    } catch (e) {
-      console.error('[Leituras] Erro detalhado:', e);
-      console.error('[Leituras] Stack:', e.stack);
-      throw e;
-    }
-  }
-  
-  // Renderizar leituras
-  function renderReadings(readings) {
-    const container = document.getElementById('readingsContainer');
-    const dateEl = document.getElementById('readingsDate');
-    
-    if (!container || !readings) return;
-    
-    dateEl.textContent = '(' + formatDate() + ')';
-    
-    let html = '';
-    
-    // Título litúrgico
-    if (readings.liturgicalTitle) {
-      html += `
-        <div style="background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border-left: 4px solid var(--primary);">
-          <h4 style="margin: 0; color: var(--primary);">${readings.liturgicalTitle}</h4>
-        </div>
-      `;
-    }
-    
-    // Cada leitura
-    readings.readings.forEach((reading, index) => {
-      const uniqueId = 'reading-' + index;
-      
-      html += `
-        <div style="background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.75rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleReading('${uniqueId}')">
-            <div>
-              <strong style="color: var(--primary);">${reading.type}</strong>
-              <div class="small muted">${reading.reference}</div>
-            </div>
-            <button type="button" class="btn secondary small" style="pointer-events: none;">
-              <span id="${uniqueId}-icon">▼</span>
-            </button>
-          </div>
-          
-          <div id="${uniqueId}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
-            ${reading.refrain ? `<p style="margin-bottom: 0.75rem; font-style: italic; color: var(--primary);"><strong>Refrão:</strong> ${reading.refrain}</p>` : ''}
-            <div style="white-space: pre-wrap; line-height: 1.6; font-size: 0.95rem;">
-              ${reading.text}
-            </div>
-            <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
-              <button type="button" class="btn secondary small" onclick="copyReading('${uniqueId}')">
-                📋 Copiar
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
-    });
-    
-    // Fonte
-    html += `
-      <div class="small muted" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
-        <strong>Fonte:</strong> Evangelizo.org • 
-        <a href="https://publication.evangelizo.ws/PT/days/${new Date().toISOString().split('T')[0]}" target="_blank">
-          Ver online
-        </a>
-      </div>
-    `;
-    
-    container.innerHTML = html;
-  }
-  
-  // Toggle mostrar/esconder leitura
-  window.toggleReading = function(id) {
-    const element = document.getElementById(id);
-    const icon = document.getElementById(id + '-icon');
-    
-    if (!element || !icon) return;
-    
-    if (element.style.display === 'none') {
-      element.style.display = 'block';
-      icon.textContent = '▲';
-    } else {
-      element.style.display = 'none';
-      icon.textContent = '▼';
-    }
-  };
-  
-  // Copiar leitura
-  window.copyReading = function(id) {
-    const element = document.getElementById(id);
-    if (!element) return;
-    
-    const text = element.textContent.trim();
-    
-    navigator.clipboard.writeText(text).then(function() {
-      showToast('Leitura copiada para a área de transferência!', 'success');
-    }).catch(function(err) {
-      console.error('Erro ao copiar:', err);
-      showToast('Erro ao copiar. Tenta selecionar e copiar manualmente.', 'error');
-    });
-  };
-  
-  // Carregar leituras
-  async function loadReadings() {
-    const container = document.getElementById('readingsContainer');
-    const loading = document.getElementById('readingsLoading');
-    const error = document.getElementById('readingsError');
-    const btn = document.getElementById('loadReadingsBtn');
-    const debugDiv = document.getElementById('readingsDebug');
-    const debugContent = document.getElementById('readingsDebugContent');
-    
-    if (!container || !loading || !error) return;
-    
-    // Mostra debug
-    if (debugDiv && debugContent) {
-      debugDiv.style.display = 'block';
-      debugContent.innerHTML = 'A iniciar carregamento...<br>';
-    }
-    
-    // Verifica cache primeiro
-    const cached = loadFromCache();
-    if (cached) {
-      if (debugContent) {
-        debugContent.innerHTML += 'Cache encontrado! A usar dados em cache.<br>';
-      }
-      currentReadings = cached;
-      renderReadings(cached);
-      return;
-    }
-    
-    if (debugContent) {
-      debugContent.innerHTML += 'Sem cache válido. A carregar da API...<br>';
-    }
-    
-    // Mostra loading
-    container.style.display = 'none';
-    error.style.display = 'none';
-    loading.style.display = 'block';
-    loading.innerHTML = `
-      <div style="margin-bottom: 0.5rem;">⏳ A carregar leituras...</div>
-      <div class="small muted">Pode demorar alguns segundos</div>
-    `;
-    if (btn) btn.disabled = true;
-    
-    try {
-      const readings = await fetchReadingsEvangelizo();
-      
-      if (debugContent) {
-        debugContent.innerHTML += `Sucesso! ${readings.readings.length} leituras recebidas.<br>`;
-      }
-      
-      currentReadings = readings;
-      saveToCache(readings);
-      
-      loading.style.display = 'none';
-      container.style.display = 'block';
-      renderReadings(readings);
-      
-      // Esconde debug após sucesso
-      setTimeout(() => {
-        if (debugDiv) debugDiv.style.display = 'none';
-      }, 3000);
-      
-    } catch (e) {
-      console.error('[Leituras] Erro ao carregar:', e);
-      
-      if (debugContent) {
-        debugContent.innerHTML += `ERRO: ${e.message}<br>`;
-        debugContent.innerHTML += `Vê a consola (F12) para mais detalhes.<br>`;
-      }
-      
-      loading.style.display = 'none';
-      error.style.display = 'block';
-      
-      // Mostra mensagem de erro mais detalhada
-      const errorDiv = document.getElementById('readingsError');
-      if (errorDiv) {
-        errorDiv.innerHTML = `
-          <div style="background: #fee; border: 1px solid #fcc; padding: 1rem; border-radius: 0.5rem;">
-            <strong>⚠️ Erro ao carregar leituras</strong>
-            <p class="small" style="margin: 0.5rem 0;">
-              <strong>Erro:</strong> ${e.message}
-            </p>
-            <p class="small" style="margin: 0.5rem 0 0 0;">
-              Podes consultar as leituras em:
-            </p>
-            <ul class="small" style="margin: 0.5rem 0 0 1rem;">
-              <li><a href="https://liturgia.pt" target="_blank">liturgia.pt</a></li>
-              <li><a href="https://www.dehonianos.org/portal/" target="_blank">dehonianos.org</a></li>
-              <li><a href="https://www.capuchinhos.org/liturgia-diaria/" target="_blank">capuchinhos.org</a></li>
-            </ul>
-            <p class="small" style="margin: 0.5rem 0 0 0;">
-              <strong>Dica:</strong> Abre a consola do browser (F12) e procura por mensagens em vermelho para mais detalhes.
-            </p>
-          </div>
-        `;
-      }
-    } finally {
-      if (btn) btn.disabled = false;
-    }
-  }
-  
-  // Event listeners
-  const loadBtn = document.getElementById('loadReadingsBtn');
-  if (loadBtn) {
-    loadBtn.addEventListener('click', loadReadings);
-  }
-  
-  // Auto-carregar se houver cache válido
-  const cached = loadFromCache();
-  if (cached) {
-    currentReadings = cached;
-    renderReadings(cached);
-  }
-  
-  // Auto-carregar quando a tab dashboard for aberta
-  document.addEventListener('click', function(e) {
-    const target = e.target;
-    if (target && target.dataset && target.dataset.tab === 'tab-dashboard') {
-      // Se ainda não carregou hoje, tenta carregar
-      if (!currentReadings) {
-        const cached = loadFromCache();
-        if (cached) {
-          currentReadings = cached;
-          renderReadings(cached);
-        }
-      }
-    }
-  });
-})();
-
-// ===== LEITURAS NO PROGRAMA (por data selecionada) =====
-(function() {
-  const PROGRAM_CACHE_KEY = 'coroReadings_program_cache';
-  
-  // Buscar leituras para uma data específica
-  async function fetchReadingsForDate(dateStr) {
-    try {
-      console.log('[Leituras Programa] A buscar para data:', dateStr);
-      
-      // dateStr deve estar no formato YYYY-MM-DD
-      const url = `https://publication.evangelizo.ws/PT/days/${dateStr}`;
-      console.log('[Leituras Programa] URL:', url);
-      
-      const response = await fetch(url);
-      console.log('[Leituras Programa] Response status:', response.status);
-      
-      if (!response.ok) {
-        throw new Error('Erro HTTP: ' + response.status);
-      }
-      
-      const data = await response.json();
-      console.log('[Leituras Programa] Dados recebidos:', data);
-      
-      if (!data || !data.data) {
-        console.error('[Leituras Programa] Estrutura de dados inválida:', data);
-        throw new Error('Dados inválidos - estrutura inesperada');
-      }
-      
-      const readings = {
-        liturgicalTitle: data.data.liturgic_title || 'Liturgia do Dia',
-        liturgicalColor: data.data.color || '',
-        readings: []
-      };
-      
-      console.log('[Leituras Programa] Título litúrgico:', readings.liturgicalTitle);
-      
-      // Primeira Leitura
-      if (data.data.reading_lt) {
-        console.log('[Leituras Programa] Primeira leitura encontrada');
-        readings.readings.push({
-          type: 'Primeira Leitura',
-          reference: data.data.reading_lt.title || '',
-          text: data.data.reading_lt.text || ''
-        });
-      }
-      
-      // Salmo
-      if (data.data.psalm) {
-        console.log('[Leituras Programa] Salmo encontrado');
-        readings.readings.push({
-          type: 'Salmo Responsorial',
-          reference: data.data.psalm.title || '',
-          text: data.data.psalm.text || '',
-          refrain: data.data.psalm.refrain || ''
-        });
-      }
-      
-      // Segunda Leitura (se existir)
-      if (data.data.reading_lt_2) {
-        console.log('[Leituras Programa] Segunda leitura encontrada');
-        readings.readings.push({
-          type: 'Segunda Leitura',
-          reference: data.data.reading_lt_2.title || '',
-          text: data.data.reading_lt_2.text || ''
-        });
-      }
-      
-      // Evangelho
-      if (data.data.gospel) {
-        console.log('[Leituras Programa] Evangelho encontrado');
-        readings.readings.push({
-          type: 'Evangelho',
-          reference: data.data.gospel.title || '',
-          text: data.data.gospel.text || ''
-        });
-      }
-      
-      console.log('[Leituras Programa] Total de leituras:', readings.readings.length);
-      
-      if (readings.readings.length === 0) {
-        throw new Error('Nenhuma leitura encontrada nos dados da API');
-      }
-      
-      return readings;
-    } catch (e) {
-      console.error('[Leituras Programa] Erro detalhado:', e);
-      console.error('[Leituras Programa] Stack:', e.stack);
-      throw e;
-    }
-  }
-  
-  // Carregar do cache por data
-  function loadFromProgramCache(dateStr) {
-    try {
-      const cached = localStorage.getItem(PROGRAM_CACHE_KEY);
-      if (!cached) return null;
-      
-      const cache = JSON.parse(cached);
-      
-      // Verifica se tem leituras para esta data
-      if (cache[dateStr]) {
-        const data = cache[dateStr];
-        const now = Date.now();
+        // Guardar em localStorage
+        localStorage.setItem('sundayImage', dataUrl);
         
-        // Cache válido por 24 horas
-        if (data.timestamp && (now - data.timestamp) < 24 * 60 * 60 * 1000) {
-          return data.readings;
+        // Mostrar preview
+        if (previewImg && preview) {
+          previewImg.src = dataUrl;
+          preview.style.display = 'block';
         }
-      }
-      
-      return null;
-    } catch (e) {
-      console.error('Erro ao carregar cache do programa:', e);
-      return null;
-    }
-  }
-  
-  // Guardar no cache por data
-  function saveToProgramCache(dateStr, readings) {
-    try {
-      let cache = {};
-      
-      const existing = localStorage.getItem(PROGRAM_CACHE_KEY);
-      if (existing) {
-        cache = JSON.parse(existing);
-      }
-      
-      cache[dateStr] = {
-        readings: readings,
-        timestamp: Date.now()
+        
+        // Mostrar botão de remover
+        if (removeBtn) {
+          removeBtn.style.display = 'inline-block';
+        }
+        
+        if (window.showToast) {
+          window.showToast('Imagem carregada com sucesso!', 'success');
+        }
       };
       
-      // Limpa entradas antigas (mais de 30 dias)
-      const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-      Object.keys(cache).forEach(key => {
-        if (cache[key].timestamp < thirtyDaysAgo) {
-          delete cache[key];
-        }
-      });
+      reader.onerror = function() {
+        alert('Erro ao carregar a imagem. Tenta novamente.');
+      };
       
-      localStorage.setItem(PROGRAM_CACHE_KEY, JSON.stringify(cache));
-    } catch (e) {
-      console.error('Erro ao guardar cache do programa:', e);
-    }
-  }
-  
-  // Formatar data para display
-  function formatProgramDate(dateStr) {
-    try {
-      const date = new Date(dateStr + 'T12:00:00');
-      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-      return date.toLocaleDateString('pt-PT', options);
-    } catch (e) {
-      return dateStr;
-    }
-  }
-  
-  // Renderizar leituras do programa
-  function renderProgramReadings(readings, dateStr) {
-    const container = document.getElementById('programReadingsContainer');
-    const dateEl = document.getElementById('programReadingsDate');
-    const section = document.getElementById('programReadingsSection');
-    
-    if (!container || !readings || !section) return;
-    
-    // Mostra a secção
-    section.style.display = 'block';
-    
-    dateEl.textContent = '(' + formatProgramDate(dateStr) + ')';
-    
-    let html = '';
-    
-    // Título litúrgico
-    if (readings.liturgicalTitle) {
-      html += `
-        <div style="background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border-left: 4px solid var(--primary);">
-          <h4 style="margin: 0; color: var(--primary);">${readings.liturgicalTitle}</h4>
-        </div>
-      `;
-    }
-    
-    // Cada leitura
-    readings.readings.forEach((reading, index) => {
-      const uniqueId = 'program-reading-' + index;
-      
-      html += `
-        <div style="background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.75rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleProgramReading('${uniqueId}')">
-            <div>
-              <strong style="color: var(--primary);">${reading.type}</strong>
-              <div class="small muted">${reading.reference}</div>
-            </div>
-            <button type="button" class="btn secondary small" style="pointer-events: none;">
-              <span id="${uniqueId}-icon">▼</span>
-            </button>
-          </div>
-          
-          <div id="${uniqueId}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
-            ${reading.refrain ? `<p style="margin-bottom: 0.75rem; font-style: italic; color: var(--primary);"><strong>Refrão:</strong> ${reading.refrain}</p>` : ''}
-            <div style="white-space: pre-wrap; line-height: 1.6; font-size: 0.95rem;">
-              ${reading.text}
-            </div>
-            <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
-              <button type="button" class="btn secondary small" onclick="copyProgramReading('${uniqueId}')">
-                📋 Copiar
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
+      reader.readAsDataURL(file);
     });
-    
-    container.innerHTML = html;
   }
   
-  // Toggle leitura do programa
-  window.toggleProgramReading = function(id) {
-    const element = document.getElementById(id);
-    const icon = document.getElementById(id + '-icon');
-    
-    if (!element || !icon) return;
-    
-    if (element.style.display === 'none') {
-      element.style.display = 'block';
-      icon.textContent = '▲';
-    } else {
-      element.style.display = 'none';
-      icon.textContent = '▼';
-    }
-  };
-  
-  // Copiar leitura do programa
-  window.copyProgramReading = function(id) {
-    const element = document.getElementById(id);
-    if (!element) return;
-    
-    const text = element.textContent.trim();
-    
-    navigator.clipboard.writeText(text).then(function() {
-      showToast('Leitura copiada para a área de transferência!', 'success');
-    }).catch(function(err) {
-      console.error('Erro ao copiar:', err);
-      showToast('Erro ao copiar. Tenta selecionar e copiar manualmente.', 'error');
-    });
-  };
-  
-  // Carregar leituras quando data é alterada
-  async function loadReadingsForSelectedDate() {
-    const dateInput = document.getElementById('date');
-    if (!dateInput || !dateInput.value) return;
-    
-    const dateStr = dateInput.value;
-    const container = document.getElementById('programReadingsContainer');
-    const loading = document.getElementById('programReadingsLoading');
-    const error = document.getElementById('programReadingsError');
-    const section = document.getElementById('programReadingsSection');
-    
-    if (!container || !loading || !error || !section) return;
-    
-    // Mostra a secção
-    section.style.display = 'block';
-    
-    // Verifica cache primeiro
-    const cached = loadFromProgramCache(dateStr);
-    if (cached) {
-      renderProgramReadings(cached, dateStr);
-      return;
-    }
-    
-    // Mostra loading
-    container.style.display = 'none';
-    error.style.display = 'none';
-    loading.style.display = 'block';
-    
-    try {
-      const readings = await fetchReadingsForDate(dateStr);
-      
-      saveToProgramCache(dateStr, readings);
-      
-      loading.style.display = 'none';
-      container.style.display = 'block';
-      renderProgramReadings(readings, dateStr);
-      
-    } catch (e) {
-      console.error('Erro ao carregar leituras do programa:', e);
-      loading.style.display = 'none';
-      error.style.display = 'block';
-      container.style.display = 'none';
-    }
-  }
-  
-  // Event listener na data
-  const dateInput = document.getElementById('date');
-  if (dateInput) {
-    dateInput.addEventListener('change', loadReadingsForSelectedDate);
-    
-    // Se já tem data preenchida, carrega
-    if (dateInput.value) {
-      loadReadingsForSelectedDate();
-    }
-  }
-  
-  // Carrega leituras quando abre a tab programa (se data já estiver preenchida)
-  document.addEventListener('click', function(e) {
-    const target = e.target;
-    if (target && target.dataset && target.dataset.tab === 'tab-programa') {
-      setTimeout(function() {
-        const dateInput = document.getElementById('date');
-        if (dateInput && dateInput.value) {
-          const section = document.getElementById('programReadingsSection');
-          const container = document.getElementById('programReadingsContainer');
-          
-          // Se secção está escondida mas data está preenchida, carrega
-          if (section && section.style.display === 'none' && container) {
-            const cached = loadFromProgramCache(dateInput.value);
-            if (cached) {
-              renderProgramReadings(cached, dateInput.value);
-            }
-          }
+  // Event listener para remover
+  if (removeBtn) {
+    removeBtn.addEventListener('click', function() {
+      if (confirm('Tens a certeza que queres remover a imagem do domingo?')) {
+        // Remover do localStorage
+        localStorage.removeItem('sundayImage');
+        
+        // Esconder preview
+        if (preview) {
+          preview.style.display = 'none';
         }
-      }, 100);
-    }
-  });
+        if (previewImg) {
+          previewImg.src = '';
+        }
+        
+        // Esconder botão de remover
+        removeBtn.style.display = 'none';
+        
+        // Limpar input
+        if (uploadInput) {
+          uploadInput.value = '';
+        }
+        
+        if (window.showToast) {
+          window.showToast('Imagem removida.', 'info');
+        }
+      }
+    });
+  }
+  
+  // Carregar imagem ao iniciar
+  loadSavedImage();
 })();
