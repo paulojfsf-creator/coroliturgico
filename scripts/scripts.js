@@ -4467,3 +4467,386 @@ window.showUseDropdown = function(btn, partLabels, titulo){
   window.renderSavedLeaflets = renderSavedLeaflets;
   window.saveCurrentLeaflet = saveCurrentLeaflet;
 })();
+// ===== CÂNTICOS PERSONALIZADOS =====
+(function() {
+  const STORAGE_KEY = 'coroCustomSongs_v1';
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  
+  let customSongs = [];
+  let currentFile = null;
+  
+  // Carregar cânticos personalizados
+  function loadCustomSongs() {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      customSongs = stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      console.error('Erro ao carregar cânticos personalizados:', e);
+      customSongs = [];
+    }
+  }
+  
+  // Guardar cânticos personalizados
+  function saveCustomSongs() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(customSongs));
+    } catch (e) {
+      console.error('Erro ao guardar cânticos personalizados:', e);
+      if (e.name === 'QuotaExceededError') {
+        showToast('Erro: Espaço de armazenamento cheio. Remove alguns folhetos ou cânticos antigos.', 'error');
+      }
+    }
+  }
+  
+  // Renderizar lista de cânticos personalizados
+  function renderCustomSongs() {
+    const container = document.getElementById('customSongsContainer');
+    if (!container) return;
+    
+    if (customSongs.length === 0) {
+      container.innerHTML = '<p class="small muted">Ainda não tens cânticos personalizados. Clica em "Adicionar Cântico" para começar.</p>';
+      return;
+    }
+    
+    let html = '<div style="display: grid; gap: 0.75rem;">';
+    
+    customSongs.forEach((song, index) => {
+      const hasFile = song.fileData ? '📄' : '⚠️';
+      const fileType = song.fileType || 'Sem ficheiro';
+      
+      html += `
+        <div style="background: white; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+          <div style="flex: 1;">
+            <div style="font-weight: 500; margin-bottom: 0.25rem;">
+              ${hasFile} ${song.title}
+            </div>
+            <div class="small muted">
+              ${song.section ? song.section + ' • ' : ''}
+              ${song.author || 'Autor desconhecido'}
+              ${song.fileType ? ' • ' + song.fileType : ''}
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="button" class="btn secondary small" onclick="viewCustomSong(${index})">
+              👁️ Ver
+            </button>
+            <button type="button" class="btn secondary small" onclick="deleteCustomSong(${index})">
+              🗑️
+            </button>
+          </div>
+        </div>
+      `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+  }
+  
+  // Abrir modal de adicionar
+  function openAddModal() {
+    const modal = document.getElementById('customSongModal');
+    const form = document.getElementById('customSongForm');
+    
+    if (!modal || !form) return;
+    
+    // Reset form
+    form.reset();
+    currentFile = null;
+    
+    const filePreview = document.getElementById('filePreview');
+    if (filePreview) filePreview.style.display = 'none';
+    
+    modal.style.display = 'flex';
+  }
+  
+  // Fechar modal de adicionar
+  function closeAddModal() {
+    const modal = document.getElementById('customSongModal');
+    if (modal) modal.style.display = 'none';
+    currentFile = null;
+  }
+  
+  // Processar upload de ficheiro
+  async function handleFileUpload(file) {
+    if (!file) return;
+    
+    // Validar tamanho
+    if (file.size > MAX_FILE_SIZE) {
+      showToast('Erro: Ficheiro muito grande. Máximo 5MB.', 'error');
+      return;
+    }
+    
+    // Validar tipo
+    const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      showToast('Erro: Tipo de ficheiro não suportado. Use PDF, JPG ou PNG.', 'error');
+      return;
+    }
+    
+    try {
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        currentFile = {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: e.target.result
+        };
+        
+        showFilePreview(currentFile);
+      };
+      
+      reader.onerror = function() {
+        showToast('Erro ao ler ficheiro.', 'error');
+      };
+      
+      reader.readAsDataURL(file);
+    } catch (e) {
+      console.error('Erro ao processar ficheiro:', e);
+      showToast('Erro ao processar ficheiro.', 'error');
+    }
+  }
+  
+  // Mostrar preview do ficheiro
+  function showFilePreview(file) {
+    const preview = document.getElementById('filePreview');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    if (!preview || !fileName || !fileSize) return;
+    
+    fileName.textContent = file.name;
+    fileSize.textContent = formatFileSize(file.size);
+    
+    if (file.type.startsWith('image/')) {
+      imagePreview.src = file.data;
+      imagePreview.style.display = 'block';
+    } else {
+      imagePreview.style.display = 'none';
+    }
+    
+    preview.style.display = 'block';
+  }
+  
+  // Formatar tamanho de ficheiro
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+  
+  // Guardar cântico personalizado
+  function saveCustomSong(e) {
+    e.preventDefault();
+    
+    const title = document.getElementById('customSongTitle').value.trim();
+    const section = document.getElementById('customSongSection').value;
+    const author = document.getElementById('customSongAuthor').value.trim();
+    const notes = document.getElementById('customSongNotes').value.trim();
+    
+    if (!title) {
+      showToast('Por favor, preenche o título do cântico.', 'error');
+      return;
+    }
+    
+    const song = {
+      id: Date.now(),
+      title: title,
+      section: section,
+      author: author,
+      notes: notes,
+      createdAt: new Date().toISOString()
+    };
+    
+    if (currentFile) {
+      song.fileData = currentFile.data;
+      song.fileName = currentFile.name;
+      song.fileType = currentFile.type;
+      song.fileSize = currentFile.size;
+    }
+    
+    customSongs.push(song);
+    saveCustomSongs();
+    renderCustomSongs();
+    closeAddModal();
+    
+    showToast('Cântico "' + title + '" adicionado com sucesso!', 'success');
+  }
+  
+  // Ver cântico personalizado
+  window.viewCustomSong = function(index) {
+    const song = customSongs[index];
+    if (!song) return;
+    
+    const modal = document.getElementById('viewCustomSongModal');
+    const title = document.getElementById('viewCustomSongTitle');
+    const section = document.getElementById('viewSongSection');
+    const author = document.getElementById('viewSongAuthor');
+    const notes = document.getElementById('viewSongNotes');
+    const notesContainer = document.getElementById('viewSongNotesContainer');
+    const fileContainer = document.getElementById('viewSongFileContainer');
+    const pdfViewer = document.getElementById('pdfViewer');
+    const imageViewer = document.getElementById('imageViewer');
+    const pdfEmbed = document.getElementById('pdfEmbed');
+    const imageView = document.getElementById('imageView');
+    
+    if (!modal) return;
+    
+    title.textContent = song.title;
+    section.textContent = song.section || 'N/A';
+    author.textContent = song.author || 'Desconhecido';
+    
+    if (song.notes) {
+      notes.textContent = song.notes;
+      notesContainer.style.display = 'block';
+    } else {
+      notesContainer.style.display = 'none';
+    }
+    
+    // Mostrar ficheiro
+    if (song.fileData) {
+      fileContainer.style.display = 'block';
+      
+      if (song.fileType === 'application/pdf') {
+        pdfEmbed.src = song.fileData;
+        pdfViewer.style.display = 'block';
+        imageViewer.style.display = 'none';
+      } else if (song.fileType.startsWith('image/')) {
+        imageView.src = song.fileData;
+        imageViewer.style.display = 'block';
+        pdfViewer.style.display = 'none';
+      }
+      
+      // Configurar botões de download/abrir
+      const downloadBtn = document.getElementById('downloadSongFileBtn');
+      const openBtn = document.getElementById('openSongFileBtn');
+      
+      if (downloadBtn) {
+        downloadBtn.onclick = function() {
+          const link = document.createElement('a');
+          link.href = song.fileData;
+          link.download = song.fileName;
+          link.click();
+        };
+      }
+      
+      if (openBtn) {
+        openBtn.onclick = function() {
+          window.open(song.fileData, '_blank');
+        };
+      }
+    } else {
+      fileContainer.style.display = 'none';
+    }
+    
+    modal.style.display = 'flex';
+  };
+  
+  // Apagar cântico personalizado
+  window.deleteCustomSong = function(index) {
+    const song = customSongs[index];
+    if (!song) return;
+    
+    if (!confirm('Tens a certeza que queres apagar "' + song.title + '"?\n\nEsta ação não pode ser desfeita.')) {
+      return;
+    }
+    
+    customSongs.splice(index, 1);
+    saveCustomSongs();
+    renderCustomSongs();
+    
+    showToast('Cântico "' + song.title + '" apagado.', 'info');
+  };
+  
+  // Event listeners
+  const addBtn = document.getElementById('addCustomSongBtn');
+  const closeBtn = document.getElementById('customSongModalClose');
+  const form = document.getElementById('customSongForm');
+  const uploadFileBtn = document.getElementById('uploadFileBtn');
+  const takePictureBtn = document.getElementById('takePictureBtn');
+  const fileInput = document.getElementById('customSongFile');
+  const cameraInput = document.getElementById('customSongCamera');
+  const removeFileBtn = document.getElementById('removeFileBtn');
+  const viewCloseBtn = document.getElementById('viewCustomSongClose');
+  
+  if (addBtn) {
+    addBtn.addEventListener('click', openAddModal);
+  }
+  
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeAddModal);
+  }
+  
+  if (form) {
+    form.addEventListener('submit', saveCustomSong);
+  }
+  
+  if (uploadFileBtn && fileInput) {
+    uploadFileBtn.addEventListener('click', function() {
+      fileInput.click();
+    });
+    fileInput.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        handleFileUpload(this.files[0]);
+      }
+    });
+  }
+  
+  if (takePictureBtn && cameraInput) {
+    takePictureBtn.addEventListener('click', function() {
+      cameraInput.click();
+    });
+    cameraInput.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        handleFileUpload(this.files[0]);
+      }
+    });
+  }
+  
+  if (removeFileBtn) {
+    removeFileBtn.addEventListener('click', function() {
+      currentFile = null;
+      const preview = document.getElementById('filePreview');
+      if (preview) preview.style.display = 'none';
+      if (fileInput) fileInput.value = '';
+      if (cameraInput) cameraInput.value = '';
+    });
+  }
+  
+  if (viewCloseBtn) {
+    viewCloseBtn.addEventListener('click', function() {
+      const modal = document.getElementById('viewCustomSongModal');
+      if (modal) modal.style.display = 'none';
+    });
+  }
+  
+  // Fechar modais ao clicar fora
+  const customModal = document.getElementById('customSongModal');
+  const viewModal = document.getElementById('viewCustomSongModal');
+  
+  if (customModal) {
+    customModal.addEventListener('click', function(e) {
+      if (e.target === this) closeAddModal();
+    });
+  }
+  
+  if (viewModal) {
+    viewModal.addEventListener('click', function(e) {
+      if (e.target === this) this.style.display = 'none';
+    });
+  }
+  
+  // Inicializar
+  loadCustomSongs();
+  renderCustomSongs();
+  
+  // Renderizar quando a tab catálogo for aberta
+  document.addEventListener('click', function(e) {
+    const target = e.target;
+    if (target && target.dataset && target.dataset.tab === 'tab-catalogo') {
+      setTimeout(renderCustomSongs, 100);
+    }
+  });
+})();
