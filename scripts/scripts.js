@@ -4850,3 +4850,296 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     }
   });
 })();
+
+// ===== LEITURAS DO DIA =====
+(function() {
+  const CACHE_KEY = 'coroReadings_cache';
+  const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 horas
+  
+  let currentReadings = null;
+  
+  // Carregar leituras do cache
+  function loadFromCache() {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (!cached) return null;
+      
+      const data = JSON.parse(cached);
+      const now = Date.now();
+      
+      // Verifica se cache ainda é válido e se é do mesmo dia
+      if (data.timestamp && (now - data.timestamp) < CACHE_DURATION) {
+        const cacheDate = new Date(data.date).toDateString();
+        const today = new Date().toDateString();
+        
+        if (cacheDate === today) {
+          return data.readings;
+        }
+      }
+      
+      return null;
+    } catch (e) {
+      console.error('Erro ao carregar cache:', e);
+      return null;
+    }
+  }
+  
+  // Guardar leituras no cache
+  function saveToCache(readings) {
+    try {
+      const data = {
+        readings: readings,
+        date: new Date().toISOString(),
+        timestamp: Date.now()
+      };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.error('Erro ao guardar cache:', e);
+    }
+  }
+  
+  // Formatar data para display
+  function formatDate() {
+    const today = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    return today.toLocaleDateString('pt-PT', options);
+  }
+  
+  // Buscar leituras usando a API Evangelizo.org
+  async function fetchReadingsEvangelizo() {
+    try {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      
+      // A API Evangelizo funciona com datas no formato YYYY-MM-DD
+      const url = `https://publication.evangelizo.ws/PT/days/${dateStr}`;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Erro ao buscar leituras');
+      }
+      
+      const data = await response.json();
+      
+      if (!data || !data.data) {
+        throw new Error('Dados inválidos');
+      }
+      
+      const readings = {
+        liturgicalTitle: data.data.liturgic_title || 'Liturgia do Dia',
+        liturgicalColor: data.data.color || '',
+        readings: []
+      };
+      
+      // Primeira Leitura
+      if (data.data.reading_lt) {
+        readings.readings.push({
+          type: 'Primeira Leitura',
+          reference: data.data.reading_lt.title || '',
+          text: data.data.reading_lt.text || ''
+        });
+      }
+      
+      // Salmo
+      if (data.data.psalm) {
+        readings.readings.push({
+          type: 'Salmo Responsorial',
+          reference: data.data.psalm.title || '',
+          text: data.data.psalm.text || '',
+          refrain: data.data.psalm.refrain || ''
+        });
+      }
+      
+      // Segunda Leitura (se existir)
+      if (data.data.reading_lt_2) {
+        readings.readings.push({
+          type: 'Segunda Leitura',
+          reference: data.data.reading_lt_2.title || '',
+          text: data.data.reading_lt_2.text || ''
+        });
+      }
+      
+      // Evangelho
+      if (data.data.gospel) {
+        readings.readings.push({
+          type: 'Evangelho',
+          reference: data.data.gospel.title || '',
+          text: data.data.gospel.text || ''
+        });
+      }
+      
+      return readings;
+    } catch (e) {
+      console.error('Erro ao buscar de Evangelizo:', e);
+      throw e;
+    }
+  }
+  
+  // Renderizar leituras
+  function renderReadings(readings) {
+    const container = document.getElementById('readingsContainer');
+    const dateEl = document.getElementById('readingsDate');
+    
+    if (!container || !readings) return;
+    
+    dateEl.textContent = '(' + formatDate() + ')';
+    
+    let html = '';
+    
+    // Título litúrgico
+    if (readings.liturgicalTitle) {
+      html += `
+        <div style="background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border-left: 4px solid var(--primary);">
+          <h4 style="margin: 0; color: var(--primary);">${readings.liturgicalTitle}</h4>
+        </div>
+      `;
+    }
+    
+    // Cada leitura
+    readings.readings.forEach((reading, index) => {
+      const uniqueId = 'reading-' + index;
+      
+      html += `
+        <div style="background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleReading('${uniqueId}')">
+            <div>
+              <strong style="color: var(--primary);">${reading.type}</strong>
+              <div class="small muted">${reading.reference}</div>
+            </div>
+            <button type="button" class="btn secondary small" style="pointer-events: none;">
+              <span id="${uniqueId}-icon">▼</span>
+            </button>
+          </div>
+          
+          <div id="${uniqueId}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+            ${reading.refrain ? `<p style="margin-bottom: 0.75rem; font-style: italic; color: var(--primary);"><strong>Refrão:</strong> ${reading.refrain}</p>` : ''}
+            <div style="white-space: pre-wrap; line-height: 1.6; font-size: 0.95rem;">
+              ${reading.text}
+            </div>
+            <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+              <button type="button" class="btn secondary small" onclick="copyReading('${uniqueId}')">
+                📋 Copiar
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    
+    // Fonte
+    html += `
+      <div class="small muted" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+        <strong>Fonte:</strong> Evangelizo.org • 
+        <a href="https://publication.evangelizo.ws/PT/days/${new Date().toISOString().split('T')[0]}" target="_blank">
+          Ver online
+        </a>
+      </div>
+    `;
+    
+    container.innerHTML = html;
+  }
+  
+  // Toggle mostrar/esconder leitura
+  window.toggleReading = function(id) {
+    const element = document.getElementById(id);
+    const icon = document.getElementById(id + '-icon');
+    
+    if (!element || !icon) return;
+    
+    if (element.style.display === 'none') {
+      element.style.display = 'block';
+      icon.textContent = '▲';
+    } else {
+      element.style.display = 'none';
+      icon.textContent = '▼';
+    }
+  };
+  
+  // Copiar leitura
+  window.copyReading = function(id) {
+    const element = document.getElementById(id);
+    if (!element) return;
+    
+    const text = element.textContent.trim();
+    
+    navigator.clipboard.writeText(text).then(function() {
+      showToast('Leitura copiada para a área de transferência!', 'success');
+    }).catch(function(err) {
+      console.error('Erro ao copiar:', err);
+      showToast('Erro ao copiar. Tenta selecionar e copiar manualmente.', 'error');
+    });
+  };
+  
+  // Carregar leituras
+  async function loadReadings() {
+    const container = document.getElementById('readingsContainer');
+    const loading = document.getElementById('readingsLoading');
+    const error = document.getElementById('readingsError');
+    const btn = document.getElementById('loadReadingsBtn');
+    
+    if (!container || !loading || !error) return;
+    
+    // Verifica cache primeiro
+    const cached = loadFromCache();
+    if (cached) {
+      currentReadings = cached;
+      renderReadings(cached);
+      return;
+    }
+    
+    // Mostra loading
+    container.style.display = 'none';
+    error.style.display = 'none';
+    loading.style.display = 'block';
+    if (btn) btn.disabled = true;
+    
+    try {
+      const readings = await fetchReadingsEvangelizo();
+      
+      currentReadings = readings;
+      saveToCache(readings);
+      
+      loading.style.display = 'none';
+      container.style.display = 'block';
+      renderReadings(readings);
+      
+    } catch (e) {
+      console.error('Erro ao carregar leituras:', e);
+      loading.style.display = 'none';
+      error.style.display = 'block';
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+  
+  // Event listeners
+  const loadBtn = document.getElementById('loadReadingsBtn');
+  if (loadBtn) {
+    loadBtn.addEventListener('click', loadReadings);
+  }
+  
+  // Auto-carregar se houver cache válido
+  const cached = loadFromCache();
+  if (cached) {
+    currentReadings = cached;
+    renderReadings(cached);
+  }
+  
+  // Auto-carregar quando a tab dashboard for aberta
+  document.addEventListener('click', function(e) {
+    const target = e.target;
+    if (target && target.dataset && target.dataset.tab === 'tab-dashboard') {
+      // Se ainda não carregou hoje, tenta carregar
+      if (!currentReadings) {
+        const cached = loadFromCache();
+        if (cached) {
+          currentReadings = cached;
+          renderReadings(cached);
+        }
+      }
+    }
+  });
+})();

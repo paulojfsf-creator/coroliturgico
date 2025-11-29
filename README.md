@@ -1,44 +1,53 @@
 # 🎵 Gestão Litúrgica - Coro Paroquial São João Batista
-## Versão 14.3 - Cânticos Personalizados (Novembro 2024)
+## Versão 14.4 - Leituras do Dia (Novembro 2024)
 
 ---
 
-## 🆕 NOVIDADE V14.3: CÂNTICOS PERSONALIZADOS
+## 🆕 NOVIDADE V14.4: LEITURAS DO DIA
 
-### Adiciona os teus próprios cânticos com partituras!
+### Leituras litúrgicas automáticas!
 
 **Nova funcionalidade:**
-- ✅ **Criar cânticos personalizados** que não estão no CSV
-- ✅ **Upload de partituras** em PDF ou imagem
-- ✅ **Captura de câmara** para tirar foto da partitura
-- ✅ **Visualizar partituras** diretamente na app
-- ✅ **Download** das partituras guardadas
-- ✅ **Gestão completa** (adicionar, ver, apagar)
+- ✅ **Leituras do dia** carregadas automaticamente
+- ✅ **Fonte portuguesa** (Evangelizo.org)
+- ✅ **Cache de 12 horas** para rapidez
+- ✅ **Expandir/colapsar** cada leitura
+- ✅ **Copiar texto** para área de transferência
+- ✅ **Links alternativos** se falhar
 
-### Como funciona:
+### Leituras incluídas:
 
-**Tab Catálogo → Secção "📝 Cânticos Personalizados"**
+- 📖 **Primeira Leitura** com referência
+- 🎵 **Salmo Responsorial** com refrão
+- 📖 **Segunda Leitura** (quando aplicável)
+- ✝️ **Evangelho** com referência
 
-1. **Adicionar:**
-   - Clica "➕ Adicionar Cântico"
-   - Preenche título, secção, autor
-   - Upload ficheiro OU tira foto da partitura
-   - Guarda!
+### Como usar:
+
+**Tab Página Inicial → Secção "📖 Leituras do Dia"**
+
+1. **Carregar:**
+   - Clica "🔄 Carregar Leituras"
+   - Aguarda alguns segundos
+   - Leituras aparecem automaticamente
 
 2. **Ver:**
-   - Clica "👁️ Ver" em qualquer cântico
-   - Visualiza a partitura (PDF ou imagem)
-   - Download ou abre em nova aba
+   - Clica em cada leitura para expandir
+   - Lê o texto completo
+   - Vê referência bíblica
 
-3. **Apagar:**
-   - Clica "🗑️" para remover
+3. **Copiar:**
+   - Clica "📋 Copiar" em qualquer leitura
+   - Texto vai para área de transferência
+   - Cola onde precisares
 
-### Formatos aceites:
-- 📄 **PDF** - Partituras digitais
-- 🖼️ **JPG/PNG** - Fotos ou scans
-- 📱 **Câmara** - Tira foto diretamente
+### Características:
 
-**Limite:** 5MB por ficheiro
+- 🔄 **Auto-refresh** diário
+- 💾 **Cache local** evita carregamentos repetidos
+- 🌐 **API Evangelizo.org** em português
+- 📱 **Responsivo** para mobile
+- 🔗 **Links de backup** se API falhar
 
 ---
 
@@ -138,22 +147,27 @@ Todas as funções relacionadas com preview foram mantidas:
 
 ## 📊 FUNCIONALIDADES POR VERSÃO
 
-### Versão 14.3 (Atual)
+### Versão 14.4 (Atual)
+- ✅ **Leituras do dia** carregadas automaticamente
+- ✅ **API Evangelizo.org** em português
+- ✅ **Cache de 12 horas** para performance
+- ✅ **Copiar leituras** para área de transferência
+- ✅ **Links alternativos** se API falhar
+
+### Versão 14.3
 - ✅ **Cânticos personalizados** com upload de partituras
-- ✅ **Câmara integrada** para tirar fotos de partituras
-- ✅ **Suporte PDF e imagens** (JPG, PNG)
+- ✅ **Câmara integrada** para tirar fotos
+- ✅ **Suporte PDF e imagens**
 - ✅ **Visualização in-app** de partituras
-- ✅ **Download** de partituras guardadas
 
 ### Versão 14.2
 - ✅ **Cantos completamente retos** (border-radius: 0)
 - ✅ Texto sempre visível em smartphones
-- ✅ Font-size reduzido: 0.75rem mobile
-- ✅ Espaçamento ultra-otimizado
+- ✅ Font-size otimizado para mobile
 
 ### Versão 14.1
 - ✅ Otimização completa para smartphones
-- ✅ Tabs retangulares (não mais redondas)
+- ✅ Tabs retangulares
 - ✅ 3 breakpoints responsivos
 
 ### Versão 14.0
@@ -175,73 +189,60 @@ Todas as funções relacionadas com preview foram mantidas:
 
 ---
 
-## 📝 NOTAS DA VERSÃO 14.3
+## 📝 NOTAS DA VERSÃO 14.4
 
-### Nova Funcionalidade: Cânticos Personalizados
+### Nova Funcionalidade: Leituras do Dia
 
 **Localização:**
-Tab Catálogo → Secção "📝 Cânticos Personalizados"
+Tab **Página Inicial** → Secção **"📖 Leituras do Dia"**
 
-**Campos disponíveis:**
-- Título do cântico **(obrigatório)**
-- Secção litúrgica (opcional)
-- Autor (opcional)
-- Observações/notas (opcional)
-- Partitura PDF ou imagem **(até 5MB)**
-
-**Upload de ficheiros:**
-```javascript
-// Formatos aceites
-PDF: application/pdf
-Imagens: image/jpeg, image/jpg, image/png, image/webp
-
-// Limite de tamanho
-MAX: 5MB por ficheiro
-
-// Armazenamento
-localStorage (base64)
+**API utilizada:**
 ```
+Evangelizo.org
+URL: https://publication.evangelizo.ws/PT/days/YYYY-MM-DD
+Idioma: Português
+Cache: 12 horas
+```
+
+**Leituras incluídas:**
+1. Título litúrgico do dia
+2. Primeira Leitura (+ referência)
+3. Salmo Responsorial (+ refrão)
+4. Segunda Leitura (quando aplicável)
+5. Evangelho (+ referência)
 
 **Funcionalidades:**
-- ✅ Upload de ficheiro do dispositivo
-- ✅ Captura direta com câmara
-- ✅ Preview antes de guardar
-- ✅ Visualização in-app (PDF embedded ou imagem)
-- ✅ Download de partitura
-- ✅ Abrir em nova aba
-- ✅ Apagar cântico
+- ✅ Carregamento automático via API
+- ✅ Cache local de 12 horas
+- ✅ Expandir/colapsar cada leitura
+- ✅ Copiar texto para clipboard
+- ✅ Links alternativos se API falhar
+- ✅ Data formatada em português
 
-**Storage:**
+**Cache:**
 ```javascript
-localStorage.coroCustomSongs_v1 = [
-  {
-    id: timestamp,
-    title: string,
-    section: string,
-    author: string,
-    notes: string,
-    fileData: base64,
-    fileName: string,
-    fileType: mime,
-    fileSize: bytes,
-    createdAt: ISO date
-  }
-]
+localStorage.coroReadings_cache = {
+  readings: {...},
+  date: ISO string,
+  timestamp: number
+}
+
+// Validade: 12 horas E mesmo dia
+// Auto-refresh: quando muda de dia
 ```
 
-### Uso de Armazenamento:
+**Links de backup:**
+- liturgia.pt
+- dehonianos.org
+- capuchinhos.org
 
-Com cânticos personalizados, o uso de localStorage pode aumentar:
-- Sem ficheiros: ~3-6MB
-- Com ficheiros: até ~10MB (limite do browser)
-
-**Recomendação:** 
-- Guarda apenas partituras essenciais
-- Usa fotos comprimidas quando possível
-- Faz backup regular do localStorage
+**Requisitos:**
+- ✅ Ligação à internet (primeira vez do dia)
+- ✅ CORS habilitado (API pública)
+- ✅ JavaScript ativo
 
 ---
 
 **Status:** ✅ Pronto para produção  
 **Última atualização:** Novembro 2024  
-**Versão:** 14.3 (Cânticos Personalizados)
+**Versão:** 14.4 (Leituras do Dia)
