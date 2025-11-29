@@ -1,40 +1,24 @@
 # 🎵 Gestão Litúrgica - Coro Paroquial São João Batista
-## Versão 14.5 - Leituras Integradas no Programa (Novembro 2024)
+## Versão 14.6 - Correção de Erros (Novembro 2024)
 
 ---
 
-## 🆕 NOVIDADE V14.5: LEITURAS NO PROGRAMA
+## 🔧 V14.6: CORREÇÃO DE ERRO CRÍTICO
 
-### Leituras aparecem automaticamente ao selecionar a data!
+### Bug Corrigido:
+❌ **Erro:** `Uncaught TypeError: can't access property "value", document.getElementById(...) is null`
 
-**Melhorias:**
-- ✅ **Leituras na tab Programa** ao selecionar data
-- ✅ **Contexto imediato** para escolher cânticos
-- ✅ **Cache por data** (não só hoje)
-- ✅ **Expandir/colapsar** cada leitura
-- ✅ **Copiar texto** para área de transferência
+**Causa:** Código obsoleto da v13 tentava aceder a campos de margem que foram removidos na v14.0
 
-### Como funciona agora:
+**Solução:** Removido código obsoleto de `applyCustomMargins()` e controlos de margem
 
-**Tab Programa:**
+### O que foi removido:
+- ❌ Função `applyCustomMargins()` (obsoleta)
+- ❌ Função `resetMargins()` (obsoleta)
+- ❌ Função `toggleEditableMode()` (obsoleta)
+- ❌ Event listeners para controlos removidos
 
-1. **Seleciona data** no campo "Data"
-2. **Leituras aparecem automaticamente** por baixo
-3. **Vê todas as leituras** desse dia
-4. **Escolhe cânticos** adequados ao tema
-5. **Cria o programa** com contexto litúrgico
-
-### Vantagens:
-
-- 📖 **Contexto imediato** - Vês leituras enquanto escolhes cânticos
-- 🎵 **Cânticos temáticos** - Relacionas com evangelho/salmo
-- 💾 **Cache inteligente** - Guarda leituras de múltiplas datas
-- ⚡ **Instantâneo** - Após primeiro carregamento
-
-### Ainda tens leituras em 2 locais:
-
-1. **Tab Página Inicial** → Leituras de hoje (consulta rápida)
-2. **Tab Programa** → Leituras da data selecionada (contexto)
+**Status:** ✅ App agora carrega sem erros na consola
 
 ---
 
@@ -134,7 +118,13 @@ Todas as funções relacionadas com preview foram mantidas:
 
 ## 📊 FUNCIONALIDADES POR VERSÃO
 
-### Versão 14.5 (Atual)
+### Versão 14.6 (Atual) - CORREÇÃO DE BUGS
+- ✅ **Corrigido erro:** `applyCustomMargins is null`
+- ✅ **Removido código obsoleto** da v13
+- ✅ **App carrega sem erros** na consola
+- ✅ **Performance melhorada**
+
+### Versão 14.5
 - ✅ **Leituras na tab Programa** ao selecionar data
 - ✅ **Cache por data** (múltiplas datas guardadas)
 - ✅ **Contexto imediato** para escolher cânticos

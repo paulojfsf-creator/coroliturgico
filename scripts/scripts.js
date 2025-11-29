@@ -1431,8 +1431,7 @@ function getProgramFromForm() {
   });
 
   
-function updatePreview() {
-
+// Função para atualizar dashboard (movida para fora de updatePreview para corrigir scoping)
 function updateDashboard() {
   try {
     const dateInput = document.getElementById('date');
@@ -1478,6 +1477,9 @@ function updateDashboard() {
     console.error('updateDashboard error', e);
   }
 }
+
+// Função updatePreview
+function updatePreview() {
     const preview = document.getElementById('previewContainer');
     const dateInput = document.getElementById('date');
     if (!dateInput.value) {
