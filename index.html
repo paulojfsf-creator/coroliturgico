@@ -1977,6 +1977,45 @@ body.lit-gold {
   <input type="file" id="uploadSundayImage" accept="image/*">
 </div>
 
+<!-- Leituras da Data Selecionada -->
+<div id="programReadingsSection" style="margin-top: 2rem; display: none;">
+  <hr>
+  <div style="background: var(--bg-soft); padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid var(--primary);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <div>
+        <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+          📖 Leituras desta Data
+          <span id="programReadingsDate" class="small muted" style="font-weight: normal;"></span>
+        </h3>
+        <p class="small muted" style="margin: 0.25rem 0 0 0;">Leituras litúrgicas para a data selecionada</p>
+      </div>
+    </div>
+
+    <div id="programReadingsContainer">
+      <p class="small muted">Seleciona uma data acima para ver as leituras litúrgicas.</p>
+    </div>
+
+    <div id="programReadingsLoading" style="display: none; text-align: center; padding: 2rem;">
+      <div style="margin-bottom: 0.5rem;">⏳ A carregar leituras...</div>
+      <div class="small muted">Pode demorar alguns segundos</div>
+    </div>
+
+    <div id="programReadingsError" style="display: none;">
+      <div style="background: #fee; border: 1px solid #fcc; padding: 1rem; border-radius: 0.5rem;">
+        <strong>⚠️ Erro ao carregar leituras</strong>
+        <p class="small" style="margin: 0.5rem 0 0 0;">
+          Não foi possível obter as leituras para esta data. Podes consultar em:
+        </p>
+        <ul class="small" style="margin: 0.5rem 0 0 1rem;">
+          <li><a href="https://liturgia.pt" target="_blank">liturgia.pt</a></li>
+          <li><a href="https://www.dehonianos.org/portal/" target="_blank">dehonianos.org</a></li>
+          <li><a href="https://www.capuchinhos.org/liturgia-diaria/" target="_blank">capuchinhos.org</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 </form>
     </section>

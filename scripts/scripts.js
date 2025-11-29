@@ -5143,3 +5143,308 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     }
   });
 })();
+
+// ===== LEITURAS NO PROGRAMA (por data selecionada) =====
+(function() {
+  const PROGRAM_CACHE_KEY = 'coroReadings_program_cache';
+  
+  // Buscar leituras para uma data específica
+  async function fetchReadingsForDate(dateStr) {
+    try {
+      // dateStr deve estar no formato YYYY-MM-DD
+      const url = `https://publication.evangelizo.ws/PT/days/${dateStr}`;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Erro ao buscar leituras');
+      }
+      
+      const data = await response.json();
+      
+      if (!data || !data.data) {
+        throw new Error('Dados inválidos');
+      }
+      
+      const readings = {
+        liturgicalTitle: data.data.liturgic_title || 'Liturgia do Dia',
+        liturgicalColor: data.data.color || '',
+        readings: []
+      };
+      
+      // Primeira Leitura
+      if (data.data.reading_lt) {
+        readings.readings.push({
+          type: 'Primeira Leitura',
+          reference: data.data.reading_lt.title || '',
+          text: data.data.reading_lt.text || ''
+        });
+      }
+      
+      // Salmo
+      if (data.data.psalm) {
+        readings.readings.push({
+          type: 'Salmo Responsorial',
+          reference: data.data.psalm.title || '',
+          text: data.data.psalm.text || '',
+          refrain: data.data.psalm.refrain || ''
+        });
+      }
+      
+      // Segunda Leitura (se existir)
+      if (data.data.reading_lt_2) {
+        readings.readings.push({
+          type: 'Segunda Leitura',
+          reference: data.data.reading_lt_2.title || '',
+          text: data.data.reading_lt_2.text || ''
+        });
+      }
+      
+      // Evangelho
+      if (data.data.gospel) {
+        readings.readings.push({
+          type: 'Evangelho',
+          reference: data.data.gospel.title || '',
+          text: data.data.gospel.text || ''
+        });
+      }
+      
+      return readings;
+    } catch (e) {
+      console.error('Erro ao buscar leituras para data:', e);
+      throw e;
+    }
+  }
+  
+  // Carregar do cache por data
+  function loadFromProgramCache(dateStr) {
+    try {
+      const cached = localStorage.getItem(PROGRAM_CACHE_KEY);
+      if (!cached) return null;
+      
+      const cache = JSON.parse(cached);
+      
+      // Verifica se tem leituras para esta data
+      if (cache[dateStr]) {
+        const data = cache[dateStr];
+        const now = Date.now();
+        
+        // Cache válido por 24 horas
+        if (data.timestamp && (now - data.timestamp) < 24 * 60 * 60 * 1000) {
+          return data.readings;
+        }
+      }
+      
+      return null;
+    } catch (e) {
+      console.error('Erro ao carregar cache do programa:', e);
+      return null;
+    }
+  }
+  
+  // Guardar no cache por data
+  function saveToProgramCache(dateStr, readings) {
+    try {
+      let cache = {};
+      
+      const existing = localStorage.getItem(PROGRAM_CACHE_KEY);
+      if (existing) {
+        cache = JSON.parse(existing);
+      }
+      
+      cache[dateStr] = {
+        readings: readings,
+        timestamp: Date.now()
+      };
+      
+      // Limpa entradas antigas (mais de 30 dias)
+      const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+      Object.keys(cache).forEach(key => {
+        if (cache[key].timestamp < thirtyDaysAgo) {
+          delete cache[key];
+        }
+      });
+      
+      localStorage.setItem(PROGRAM_CACHE_KEY, JSON.stringify(cache));
+    } catch (e) {
+      console.error('Erro ao guardar cache do programa:', e);
+    }
+  }
+  
+  // Formatar data para display
+  function formatProgramDate(dateStr) {
+    try {
+      const date = new Date(dateStr + 'T12:00:00');
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      return date.toLocaleDateString('pt-PT', options);
+    } catch (e) {
+      return dateStr;
+    }
+  }
+  
+  // Renderizar leituras do programa
+  function renderProgramReadings(readings, dateStr) {
+    const container = document.getElementById('programReadingsContainer');
+    const dateEl = document.getElementById('programReadingsDate');
+    const section = document.getElementById('programReadingsSection');
+    
+    if (!container || !readings || !section) return;
+    
+    // Mostra a secção
+    section.style.display = 'block';
+    
+    dateEl.textContent = '(' + formatProgramDate(dateStr) + ')';
+    
+    let html = '';
+    
+    // Título litúrgico
+    if (readings.liturgicalTitle) {
+      html += `
+        <div style="background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border-left: 4px solid var(--primary);">
+          <h4 style="margin: 0; color: var(--primary);">${readings.liturgicalTitle}</h4>
+        </div>
+      `;
+    }
+    
+    // Cada leitura
+    readings.readings.forEach((reading, index) => {
+      const uniqueId = 'program-reading-' + index;
+      
+      html += `
+        <div style="background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleProgramReading('${uniqueId}')">
+            <div>
+              <strong style="color: var(--primary);">${reading.type}</strong>
+              <div class="small muted">${reading.reference}</div>
+            </div>
+            <button type="button" class="btn secondary small" style="pointer-events: none;">
+              <span id="${uniqueId}-icon">▼</span>
+            </button>
+          </div>
+          
+          <div id="${uniqueId}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+            ${reading.refrain ? `<p style="margin-bottom: 0.75rem; font-style: italic; color: var(--primary);"><strong>Refrão:</strong> ${reading.refrain}</p>` : ''}
+            <div style="white-space: pre-wrap; line-height: 1.6; font-size: 0.95rem;">
+              ${reading.text}
+            </div>
+            <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+              <button type="button" class="btn secondary small" onclick="copyProgramReading('${uniqueId}')">
+                📋 Copiar
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    
+    container.innerHTML = html;
+  }
+  
+  // Toggle leitura do programa
+  window.toggleProgramReading = function(id) {
+    const element = document.getElementById(id);
+    const icon = document.getElementById(id + '-icon');
+    
+    if (!element || !icon) return;
+    
+    if (element.style.display === 'none') {
+      element.style.display = 'block';
+      icon.textContent = '▲';
+    } else {
+      element.style.display = 'none';
+      icon.textContent = '▼';
+    }
+  };
+  
+  // Copiar leitura do programa
+  window.copyProgramReading = function(id) {
+    const element = document.getElementById(id);
+    if (!element) return;
+    
+    const text = element.textContent.trim();
+    
+    navigator.clipboard.writeText(text).then(function() {
+      showToast('Leitura copiada para a área de transferência!', 'success');
+    }).catch(function(err) {
+      console.error('Erro ao copiar:', err);
+      showToast('Erro ao copiar. Tenta selecionar e copiar manualmente.', 'error');
+    });
+  };
+  
+  // Carregar leituras quando data é alterada
+  async function loadReadingsForSelectedDate() {
+    const dateInput = document.getElementById('date');
+    if (!dateInput || !dateInput.value) return;
+    
+    const dateStr = dateInput.value;
+    const container = document.getElementById('programReadingsContainer');
+    const loading = document.getElementById('programReadingsLoading');
+    const error = document.getElementById('programReadingsError');
+    const section = document.getElementById('programReadingsSection');
+    
+    if (!container || !loading || !error || !section) return;
+    
+    // Mostra a secção
+    section.style.display = 'block';
+    
+    // Verifica cache primeiro
+    const cached = loadFromProgramCache(dateStr);
+    if (cached) {
+      renderProgramReadings(cached, dateStr);
+      return;
+    }
+    
+    // Mostra loading
+    container.style.display = 'none';
+    error.style.display = 'none';
+    loading.style.display = 'block';
+    
+    try {
+      const readings = await fetchReadingsForDate(dateStr);
+      
+      saveToProgramCache(dateStr, readings);
+      
+      loading.style.display = 'none';
+      container.style.display = 'block';
+      renderProgramReadings(readings, dateStr);
+      
+    } catch (e) {
+      console.error('Erro ao carregar leituras do programa:', e);
+      loading.style.display = 'none';
+      error.style.display = 'block';
+      container.style.display = 'none';
+    }
+  }
+  
+  // Event listener na data
+  const dateInput = document.getElementById('date');
+  if (dateInput) {
+    dateInput.addEventListener('change', loadReadingsForSelectedDate);
+    
+    // Se já tem data preenchida, carrega
+    if (dateInput.value) {
+      loadReadingsForSelectedDate();
+    }
+  }
+  
+  // Carrega leituras quando abre a tab programa (se data já estiver preenchida)
+  document.addEventListener('click', function(e) {
+    const target = e.target;
+    if (target && target.dataset && target.dataset.tab === 'tab-programa') {
+      setTimeout(function() {
+        const dateInput = document.getElementById('date');
+        if (dateInput && dateInput.value) {
+          const section = document.getElementById('programReadingsSection');
+          const container = document.getElementById('programReadingsContainer');
+          
+          // Se secção está escondida mas data está preenchida, carrega
+          if (section && section.style.display === 'none' && container) {
+            const cached = loadFromProgramCache(dateInput.value);
+            if (cached) {
+              renderProgramReadings(cached, dateInput.value);
+            }
+          }
+        }
+      }, 100);
+    }
+  });
+})();

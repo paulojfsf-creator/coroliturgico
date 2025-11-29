@@ -1,53 +1,40 @@
 # 🎵 Gestão Litúrgica - Coro Paroquial São João Batista
-## Versão 14.4 - Leituras do Dia (Novembro 2024)
+## Versão 14.5 - Leituras Integradas no Programa (Novembro 2024)
 
 ---
 
-## 🆕 NOVIDADE V14.4: LEITURAS DO DIA
+## 🆕 NOVIDADE V14.5: LEITURAS NO PROGRAMA
 
-### Leituras litúrgicas automáticas!
+### Leituras aparecem automaticamente ao selecionar a data!
 
-**Nova funcionalidade:**
-- ✅ **Leituras do dia** carregadas automaticamente
-- ✅ **Fonte portuguesa** (Evangelizo.org)
-- ✅ **Cache de 12 horas** para rapidez
+**Melhorias:**
+- ✅ **Leituras na tab Programa** ao selecionar data
+- ✅ **Contexto imediato** para escolher cânticos
+- ✅ **Cache por data** (não só hoje)
 - ✅ **Expandir/colapsar** cada leitura
 - ✅ **Copiar texto** para área de transferência
-- ✅ **Links alternativos** se falhar
 
-### Leituras incluídas:
+### Como funciona agora:
 
-- 📖 **Primeira Leitura** com referência
-- 🎵 **Salmo Responsorial** com refrão
-- 📖 **Segunda Leitura** (quando aplicável)
-- ✝️ **Evangelho** com referência
+**Tab Programa:**
 
-### Como usar:
+1. **Seleciona data** no campo "Data"
+2. **Leituras aparecem automaticamente** por baixo
+3. **Vê todas as leituras** desse dia
+4. **Escolhe cânticos** adequados ao tema
+5. **Cria o programa** com contexto litúrgico
 
-**Tab Página Inicial → Secção "📖 Leituras do Dia"**
+### Vantagens:
 
-1. **Carregar:**
-   - Clica "🔄 Carregar Leituras"
-   - Aguarda alguns segundos
-   - Leituras aparecem automaticamente
+- 📖 **Contexto imediato** - Vês leituras enquanto escolhes cânticos
+- 🎵 **Cânticos temáticos** - Relacionas com evangelho/salmo
+- 💾 **Cache inteligente** - Guarda leituras de múltiplas datas
+- ⚡ **Instantâneo** - Após primeiro carregamento
 
-2. **Ver:**
-   - Clica em cada leitura para expandir
-   - Lê o texto completo
-   - Vê referência bíblica
+### Ainda tens leituras em 2 locais:
 
-3. **Copiar:**
-   - Clica "📋 Copiar" em qualquer leitura
-   - Texto vai para área de transferência
-   - Cola onde precisares
-
-### Características:
-
-- 🔄 **Auto-refresh** diário
-- 💾 **Cache local** evita carregamentos repetidos
-- 🌐 **API Evangelizo.org** em português
-- 📱 **Responsivo** para mobile
-- 🔗 **Links de backup** se API falhar
+1. **Tab Página Inicial** → Leituras de hoje (consulta rápida)
+2. **Tab Programa** → Leituras da data selecionada (contexto)
 
 ---
 
@@ -147,12 +134,17 @@ Todas as funções relacionadas com preview foram mantidas:
 
 ## 📊 FUNCIONALIDADES POR VERSÃO
 
-### Versão 14.4 (Atual)
+### Versão 14.5 (Atual)
+- ✅ **Leituras na tab Programa** ao selecionar data
+- ✅ **Cache por data** (múltiplas datas guardadas)
+- ✅ **Contexto imediato** para escolher cânticos
+- ✅ **2 locais** - Página inicial (hoje) + Programa (data selecionada)
+
+### Versão 14.4
 - ✅ **Leituras do dia** carregadas automaticamente
 - ✅ **API Evangelizo.org** em português
 - ✅ **Cache de 12 horas** para performance
 - ✅ **Copiar leituras** para área de transferência
-- ✅ **Links alternativos** se API falhar
 
 ### Versão 14.3
 - ✅ **Cânticos personalizados** com upload de partituras
@@ -174,11 +166,6 @@ Todas as funções relacionadas com preview foram mantidas:
 - ✅ Remoção da tab "Pré-visualização"
 - ✅ Interface simplificada (8 tabs)
 
-### Versão 13
-- ✅ 2 pastas de partituras do Google Drive
-- ✅ Pesquisa de partituras
-- ✅ Apagar histórico individual de cânticos
-
 ---
 
 ## 🚀 INSTALAÇÃO
@@ -189,60 +176,61 @@ Todas as funções relacionadas com preview foram mantidas:
 
 ---
 
-## 📝 NOTAS DA VERSÃO 14.4
+## 📝 NOTAS DA VERSÃO 14.5
 
-### Nova Funcionalidade: Leituras do Dia
+### Melhoria: Leituras Integradas no Programa
 
-**Localização:**
-Tab **Página Inicial** → Secção **"📖 Leituras do Dia"**
+**Localização principal:**
+Tab **Programa** → Seleciona data → **Leituras aparecem automaticamente**
 
-**API utilizada:**
+**Como funciona:**
 ```
-Evangelizo.org
-URL: https://publication.evangelizo.ws/PT/days/YYYY-MM-DD
-Idioma: Português
-Cache: 12 horas
+1. Abre Tab Programa
+2. Seleciona data no campo "Data"
+3. Leituras dessa data carregam automaticamente
+4. Aparecem por baixo dos cânticos
+5. Podes expandir/colapsar cada leitura
+6. Escolhes cânticos com contexto litúrgico
 ```
 
-**Leituras incluídas:**
-1. Título litúrgico do dia
-2. Primeira Leitura (+ referência)
-3. Salmo Responsorial (+ refrão)
-4. Segunda Leitura (quando aplicável)
-5. Evangelho (+ referência)
+**Diferenças entre os 2 locais:**
 
-**Funcionalidades:**
-- ✅ Carregamento automático via API
-- ✅ Cache local de 12 horas
-- ✅ Expandir/colapsar cada leitura
-- ✅ Copiar texto para clipboard
-- ✅ Links alternativos se API falhar
-- ✅ Data formatada em português
+| Local | Finalidade | Data | Cache |
+|-------|-----------|------|-------|
+| **Página Inicial** | Consulta rápida | Hoje | 12 horas |
+| **Programa** | Contexto ao criar | Data selecionada | 24 horas/data |
 
-**Cache:**
+**Vantagens:**
+- ✅ Vês evangelho enquanto escolhes entrada/comunhão
+- ✅ Relacionas salmo com momento litúrgico
+- ✅ Tema do dia está visível durante criação
+- ✅ Não precisas mudar de tab
+
+**Cache inteligente:**
 ```javascript
-localStorage.coroReadings_cache = {
-  readings: {...},
-  date: ISO string,
-  timestamp: number
+localStorage.coroReadings_program_cache = {
+  "2024-11-29": {
+    readings: {...},
+    timestamp: number
+  },
+  "2024-12-01": {
+    readings: {...},
+    timestamp: number
+  }
+  // Múltiplas datas guardadas
+  // Limpeza automática após 30 dias
 }
-
-// Validade: 12 horas E mesmo dia
-// Auto-refresh: quando muda de dia
 ```
 
-**Links de backup:**
-- liturgia.pt
-- dehonianos.org
-- capuchinhos.org
-
-**Requisitos:**
-- ✅ Ligação à internet (primeira vez do dia)
-- ✅ CORS habilitado (API pública)
-- ✅ JavaScript ativo
+**Funcionamento:**
+1. **Seleciona data** → Verifica cache
+2. **Se em cache** → Mostra instantaneamente
+3. **Se não** → Busca API → Guarda cache
+4. **Cache válido** → 24 horas por data
+5. **Auto-limpeza** → Remove datas antigas (>30 dias)
 
 ---
 
 **Status:** ✅ Pronto para produção  
 **Última atualização:** Novembro 2024  
-**Versão:** 14.4 (Leituras do Dia)
+**Versão:** 14.5 (Leituras Integradas)
