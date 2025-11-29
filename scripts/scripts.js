@@ -3794,93 +3794,9 @@ window.showUseDropdown = function(btn, partLabels, titulo){
   });
 })();
 
-// ===== CONTROLES DE IMPRESSÃO E MARGEM =====
-(function() {
-  // Aplicar margens personalizadas
-  function applyCustomMargins() {
-    const top = document.getElementById('marginTop').value;
-    const bottom = document.getElementById('marginBottom').value;
-    const left = document.getElementById('marginLeft').value;
-    const right = document.getElementById('marginRight').value;
-    
-    document.documentElement.style.setProperty('--print-margin-top', top + 'cm');
-    document.documentElement.style.setProperty('--print-margin-bottom', bottom + 'cm');
-    document.documentElement.style.setProperty('--print-margin-left', left + 'cm');
-    document.documentElement.style.setProperty('--print-margin-right', right + 'cm');
-    
-    if (window.showToast) {
-      window.showToast('Margens aplicadas! Use Ctrl+P para imprimir.', 'success');
-    }
-  }
-  
-  // Restaurar margens padrão
-  function resetMargins() {
-    document.getElementById('marginTop').value = 1.5;
-    document.getElementById('marginBottom').value = 1;
-    document.getElementById('marginLeft').value = 1.5;
-    document.getElementById('marginRight').value = 1;
-    
-    applyCustomMargins();
-  }
-  
-  // Toggle modo editável
-  function toggleEditableMode() {
-    const checkbox = document.getElementById('editableMode');
-    const container = document.getElementById('previewContainer');
-    
-    if (!container) return;
-    
-    if (checkbox.checked) {
-      container.contentEditable = true;
-      container.style.border = '2px dashed #4f46e5';
-      container.style.padding = '0.5rem';
-      
-      if (window.showToast) {
-        window.showToast('✏️ Modo edição ativado! Clique no texto para editar.', 'info');
-      }
-    } else {
-      container.contentEditable = false;
-      container.style.border = 'none';
-      container.style.padding = '0';
-      
-      if (window.showToast) {
-        window.showToast('Modo edição desativado.', 'info');
-      }
-    }
-  }
-  
-  // Event listeners
-  const applyBtn = document.getElementById('applyMargins');
-  const resetBtn = document.getElementById('resetMargins');
-  const editableCheckbox = document.getElementById('editableMode');
-  
-  if (applyBtn) {
-    applyBtn.addEventListener('click', applyCustomMargins);
-  }
-  
-  if (resetBtn) {
-    resetBtn.addEventListener('click', resetMargins);
-  }
-  
-  if (editableCheckbox) {
-    editableCheckbox.addEventListener('change', toggleEditableMode);
-  }
-  
-  // Aplicar margens iniciais
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', applyCustomMargins);
-  } else {
-    applyCustomMargins();
-  }
-  
-  // Atalho de teclado para impressão
-  document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
-      // O navegador já cuida da impressão, apenas aplicamos as margens
-      applyCustomMargins();
-    }
-  });
-})();
+// ===== CONTROLES DE IMPRESSÃO E MARGEM (OBSOLETO - REMOVIDO v14.0) =====
+// Esta secção foi removida porque a tab de pré-visualização foi eliminada na v14.0
+// Os controlos de margem (marginTop, marginBottom, etc.) já não existem na interface
 
 // ===== VÍDEOS DOS CÂNTICOS =====
 (function() {
