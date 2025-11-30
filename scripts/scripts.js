@@ -1524,8 +1524,8 @@ function updatePreview() {
     // Logo e imagem
     const logoEl = document.getElementById('folhetoLogo');
     const imgDomingoEl = document.getElementById('folhetoImagemDomingo');
-    const logoSrc = logoEl && logoEl.src ? logoEl.src : '';
-    const domingoSrc = imgDomingoEl && imgDomingoEl.src ? imgDomingoEl.src : '';
+    const logoSrc = 'logo.png';
+    const domingoSrc = (typeof localStorage !== 'undefined' && localStorage.getItem('sundayImage')) || '';
 
     // Construir blocos de cânticos com letras
     let songsHtml = '';
