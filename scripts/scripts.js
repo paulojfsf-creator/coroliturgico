@@ -1525,7 +1525,7 @@ function updatePreview() {
     const logoEl = document.getElementById('folhetoLogo');
     const imgDomingoEl = document.getElementById('folhetoImagemDomingo');
     const logoSrc = 'logo.png';
-    const domingoSrc = (typeof localStorage !== 'undefined' && localStorage.getItem('sundayImage')) || '';
+    const domingoSrc = (typeof window !== 'undefined' && window.__sundayImageUrl) || '';
 
     // Construir blocos de cânticos com letras
     let songsHtml = '';
@@ -4686,96 +4686,81 @@ window.showUseDropdown = function(btn, partLabels, titulo){
   const removeBtn = document.getElementById('removeSundayImage');
   const preview = document.getElementById('sundayImagePreview');
   const previewImg = document.getElementById('sundayImagePreviewImg');
-  
-  // Carregar imagem guardada ao iniciar
-  function loadSavedImage() {
-    const saved = localStorage.getItem('sundayImage');
-    if (saved && preview && previewImg && removeBtn) {
-      previewImg.src = saved;
-      preview.style.display = 'block';
-      removeBtn.style.display = 'inline-block';
+
+  // URL temporário da imagem do domingo (não persiste entre sessões)
+  if (typeof window !== 'undefined') {
+    window.__sundayImageUrl = '';
+  }
+
+  function clearSundayImage() {
+    if (typeof window !== 'undefined' && window.__sundayImageUrl) {
+      try {
+        URL.revokeObjectURL(window.__sundayImageUrl);
+      } catch (e) {
+        // Ignorar erros ao revogar URL
+      }
+    }
+    if (typeof window !== 'undefined') {
+      window.__sundayImageUrl = '';
+    }
+    if (previewImg) {
+      previewImg.src = '';
+    }
+    if (preview) {
+      preview.style.display = 'none';
+    }
+    if (removeBtn) {
+      removeBtn.style.display = 'none';
     }
   }
-  
+
   // Event listener para upload
   if (uploadInput) {
     uploadInput.addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
-      
+
       // Validar tipo de ficheiro
-      if (!file.type.startsWith('image/')) {
-        alert('Por favor, seleciona um ficheiro de imagem válido.');
+      if (!file.type || !/^image\//i.test(file.type)) {
+        alert('Por favor escolhe um ficheiro de imagem válido (PNG, JPG, etc.).');
         return;
       }
-      
-      // Validar tamanho (máx 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        alert('A imagem é muito grande. O tamanho máximo é 2MB.');
+
+      // Validar tamanho (máx ~5MB para evitar problemas de desempenho)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Imagem demasiado grande. Escolhe uma imagem até 5MB.');
         return;
       }
-      
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        const dataUrl = event.target.result;
-        
-        // Guardar em localStorage
-        localStorage.setItem('sundayImage', dataUrl);
-        
-        // Mostrar preview
-        if (previewImg && preview) {
-          previewImg.src = dataUrl;
-          preview.style.display = 'block';
-        }
-        
-        // Mostrar botão de remover
-        if (removeBtn) {
-          removeBtn.style.display = 'inline-block';
-        }
-        
-        if (window.showToast) {
-          window.showToast('Imagem carregada com sucesso!', 'success');
-        }
-      };
-      
-      reader.onerror = function() {
-        alert('Erro ao carregar a imagem. Tenta novamente.');
-      };
-      
-      reader.readAsDataURL(file);
+
+      // Limpar imagem anterior
+      clearSundayImage();
+
+      // Criar URL temporário
+      const objectUrl = URL.createObjectURL(file);
+      if (typeof window !== 'undefined') {
+        window.__sundayImageUrl = objectUrl;
+      }
+
+      // Mostrar preview
+      if (previewImg && preview) {
+        previewImg.src = objectUrl;
+        preview.style.display = 'block';
+      }
+
+      // Mostrar botão de remover
+      if (removeBtn) {
+        removeBtn.style.display = 'inline-block';
+      }
     });
   }
-  
-  // Event listener para remover
+
+  // Botão para remover imagem
   if (removeBtn) {
     removeBtn.addEventListener('click', function() {
-      if (confirm('Tens a certeza que queres remover a imagem do domingo?')) {
-        // Remover do localStorage
-        localStorage.removeItem('sundayImage');
-        
-        // Esconder preview
-        if (preview) {
-          preview.style.display = 'none';
-        }
-        if (previewImg) {
-          previewImg.src = '';
-        }
-        
-        // Esconder botão de remover
-        removeBtn.style.display = 'none';
-        
-        // Limpar input
-        if (uploadInput) {
-          uploadInput.value = '';
-        }
-        
-        if (window.showToast) {
-          window.showToast('Imagem removida.', 'info');
-        }
+      if (!confirm('Tens a certeza que queres remover a imagem do domingo?')) {
+        return;
       }
+      clearSundayImage();
     });
   }
-  
-  // Carregar imagem ao iniciar
-  loadSavedImage();
 })();
