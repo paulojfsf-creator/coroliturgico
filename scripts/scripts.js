@@ -1767,7 +1767,7 @@ document.getElementById('assemblySheetBtn').addEventListener('click', () => {
 
 @page {
   size: A4 portrait;
-  margin: 10mm 10mm 12mm 14mm;
+  margin: ${mt}mm ${mr}mm ${mb}mm ${ml}mm;
 }
 
 @media print {
@@ -1934,7 +1934,7 @@ document.getElementById('assemblySheetBtnNoLyrics').addEventListener('click', ()
 
 @page {
   size: A4 portrait;
-  margin: 10mm 10mm 12mm 14mm;
+  margin: ${mt}mm ${mr}mm ${mb}mm ${ml}mm;
 }
 
 @media print {
