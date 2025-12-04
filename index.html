@@ -2500,5 +2500,27 @@ body.lit-gold {
 </div>
 
 <script src="scripts/scripts.js"></script>
+
+<!-- Modal para visualização do folheto da assembleia -->
+<div id="leafletModalBackdrop" class="modal-backdrop" hidden>
+  <div class="modal" style="max-width: 900px;">
+    <div class="modal-header">
+      <h3>Folheto da assembleia</h3>
+    </div>
+    <div class="modal-body">
+      <div id="leafletModalContent" style="background: #f9fafb; padding: 0.5rem; border-radius: 0.5rem; overflow:auto;">
+        <!-- Conteúdo do folheto será injetado aqui -->
+      </div>
+      <p class="tiny muted" style="margin-top:0.5rem;">
+        Pré-visualização em formato A4. As margens e o conteúdo serão impressos tal como aparecem aqui.
+      </p>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" id="leafletModalCloseBtn">Fechar</button>
+      <button type="button" class="btn primary" id="leafletModalPrintBtn">Imprimir / PDF</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
