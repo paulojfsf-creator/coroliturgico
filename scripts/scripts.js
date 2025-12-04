@@ -1637,19 +1637,7 @@ function updatePreview() {
   });
 
 
-document.getElementById('assemblySheetBtn').addEventListener('click', () => {
-    const dateInput = document.getElementById('date');
-    if (!dateInput.value) {
-      showToast('Escolhe uma data primeiro.', 'error');
-      return;
-    }
 
-    // Verificar se há pelo menos um cântico selecionado
-    let hasSong = false;
-    PROGRAM_PARTS.forEach(part => {
-      const select = document.getElementById(part.id);
-      if (select && select.value) hasSong = true;
-    });
     if (!hasSong) {
       showToast('Seleciona pelo menos um cântico antes de gerar o folheto.', 'error');
       return;
@@ -1802,18 +1790,7 @@ document.getElementById('assemblySheetBtn').addEventListener('click', () => {
 
 
 
-document.getElementById('assemblySheetBtnNoLyrics').addEventListener('click', () => {
-    const dateInput = document.getElementById('date');
-    if (!dateInput.value) {
-      showToast('Escolhe uma data primeiro.', 'error');
-      return;
-    }
 
-    let hasSong = false;
-    PROGRAM_PARTS.forEach(part => {
-      const select = document.getElementById(part.id);
-      if (select && select.value) hasSong = true;
-    });
     if (!hasSong) {
       showToast('Seleciona pelo menos um cântico antes de gerar o folheto.', 'error');
       return;
@@ -4764,3 +4741,8 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     });
   }
 })();
+
+
+// === v0.7: Botões da ABA PROGRAMA a usar o modal ===
+document.getElementById('assemblySheetBtn')?.addEventListener('click', () => openLeafletModal(true));
+document.getElementById('assemblySheetBtnNoLyrics')?.addEventListener('click', () => openLeafletModal(false));
