@@ -4746,3 +4746,61 @@ window.showUseDropdown = function(btn, partLabels, titulo){
 // === v0.7: Botões da ABA PROGRAMA a usar o modal ===
 document.getElementById('assemblySheetBtn')?.addEventListener('click', () => openLeafletModal(true));
 document.getElementById('assemblySheetBtnNoLyrics')?.addEventListener('click', () => openLeafletModal(false));
+
+
+
+// === v0.8: Sistema automático de pesquisa de letras ===
+function openLyricsSearchModal(title, author){
+    const backdrop=document.getElementById("lyricsSearchBackdrop");
+    const list=document.getElementById("lyricsSearchList");
+    const titleEl=document.getElementById("lyricsSearchTitle");
+    if(!title) return;
+    titleEl.textContent = "Procurar letra de: " + title;
+
+    const queryBase = '"' + title + '"';
+    const qa = author ? '"' + title + '" "' + author + '" letra' : queryBase + ' letra';
+    const enc = encodeURIComponent;
+
+    const links = [
+        {label:"Liturgia.pt", url:"https://www.liturgia.pt/?s=" + enc(title)},
+        {label:"Cantemus Domino", url:"https://cantemusdomino.net/?s=" + enc(title)},
+        {label:"Google", url:"https://www.google.com/search?q=" + enc(qa)},
+        {label:"YouTube", url:"https://www.youtube.com/results?search_query=" + enc(qa)},
+        {label:"CifraClub", url:"https://www.cifraclub.com.br/?q=" + enc(title)}
+    ];
+
+    list.innerHTML = links.map(
+        l => `<p><a href="${l.url}" target="_blank">${l.label}</a></p>`
+    ).join("");
+
+    backdrop.hidden=false;
+}
+
+document.getElementById("lyricsSearchCloseBtn")?.addEventListener("click",()=>{
+    document.getElementById("lyricsSearchBackdrop").hidden=true;
+});
+document.getElementById("lyricsSearchBackdrop")?.addEventListener("click",(e)=>{
+    if(e.target.id==="lyricsSearchBackdrop") e.target.hidden=true;
+});
+
+// Adicionar botão de procurar letra junto a cada cântico
+(function(){
+    (window.PROGRAM_PARTS||[]).forEach(part=>{
+        const sel=document.getElementById(part.id);
+        if(!sel) return;
+        let existing = document.getElementById("lyricsBtn_"+part.id);
+        if(!existing){
+            const btn=document.createElement("button");
+            btn.id="lyricsBtn_"+part.id;
+            btn.className="btn tiny";
+            btn.textContent="Procurar letra";
+            sel.insertAdjacentElement("afterend",btn);
+            existing = btn;
+        }
+        existing.addEventListener("click",()=>{
+            const title = sel.value;
+            const author = ""; 
+            openLyricsSearchModal(title, author);
+        });
+    });
+})();
