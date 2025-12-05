@@ -108,29 +108,45 @@ function showToast(message, type) {
   }
   
   function warnIfProgramHasVeryRecentSongs(program) {
-    if (!program || !program.parts) return;
-    loadSongUsageHistory();
-    const today = new Date();
-    const recentWarnings = [];
-    program.parts.forEach(function(p) {
-      if (!p.title) return;
-      const last = getLastUsageForTitle(p.title);
-      if (!last || !last.date) return;
-      const parts = last.date.split('-');
-      if (parts.length !== 3) return;
-      const y = parseInt(parts[0], 10);
-      const m = parseInt(parts[1], 10);
-      const d = parseInt(parts[2], 10);
-      if (!y || !m || !d) return;
-      const dt = new Date(y, m - 1, d);
-      const diffDays = Math.round((today - dt) / (1000 * 60 * 60 * 24));
-      if (diffDays <= 7) {
-        recentWarnings.push(p.label + ' — ' + p.title + ' (' + describeRecency(last.date) + ')');
-      }
-    if (recentWarnings.length && typeof showToast === 'function') {
-      showToast('Atenção: alguns cânticos foram usados muito recentemente:\n' + recentWarnings.join('\n'), 'warning');
+  if (!program || !program.parts) return;
+  loadSongUsageHistory();
+
+  const today = new Date();
+  const recentWarnings = [];
+
+  program.parts.forEach(function(p) {
+    if (!p.title) return;
+
+    const last = getLastUsageForTitle(p.title);
+    if (!last || !last.date) return;
+
+    const parts = last.date.split('-');
+    if (parts.length !== 3) return;
+
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const d = parseInt(parts[2], 10);
+    if (!y || !m || !d) return;
+
+    const dt = new Date(y, m - 1, d);
+    const diffDays = Math.round((today - dt) / (1000 * 60 * 60 * 24));
+
+    if (diffDays <= 7) {
+      recentWarnings.push(p.label + ' — ' + p.title + ' (' + describeRecency(last.date) + ')');
     }
+  });
+
+  if (recentWarnings.length && typeof showToast === 'function') {
+    showToast(
+      'Atenção: alguns cânticos foram usados muito recentemente:
+' +
+      recentWarnings.join('
+'),
+      'warning'
+    );
   }
+}
+
 function sameDate(d1, d2) {
     return d1.getFullYear() === d2.getFullYear() &&
            d1.getMonth() === d2.getMonth() &&
