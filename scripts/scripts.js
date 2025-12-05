@@ -664,7 +664,6 @@ function getFeastForDate(date) {
     document.body.classList.remove(
       'liturgic-advento','liturgic-quaresma','liturgic-natal','liturgic-pascoa','liturgic-tempocomum',
       'lit-green','lit-purple','lit-red','lit-white','lit-gold'
-    );
     if (season === 'Advento') {
       document.body.classList.add('liturgic-advento','lit-purple');
     } else if (season === 'Quaresma') {
