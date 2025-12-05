@@ -41,52 +41,104 @@ const PROGRAM_PARTS = [
       count: 1
     };
   function loadSongUsageHistory() {
-  try {
-    const raw = localStorage.getItem('coroSongUsage_v1');
-    songUsageHistory = raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    songUsageHistory = [];
+    try {
+      const raw = localStorage.getItem('coroSongUsage_v1');
+      songUsageHistory = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      songUsageHistory = [];
+    }
+    return songUsageHistory;
   }
-  return songUsageHistory;
-}
 
-function getLastUsageForTitle(title) {
-  if (!title) return null;
-  loadSongUsageHistory();
-  const filtered = songUsageHistory.filter(function(e) {
-    return e.title === title;
-  });
-  if (!filtered.length) return null;
-  filtered.sort(function(a, b) {
-    return String(b.date || '').localeCompare(String(a.date || ''));
-  });
-  return filtered[0];
-}
+  function getLastUsageForTitle(title) {
+    if (!title) return null;
+    loadSongUsageHistory();
+    const filtered = songUsageHistory.filter(function(e) { return e.title === title; });
+    if (!filtered.length) return null;
+    filtered.sort(function(a, b) {
+      return String(b.date || '').localeCompare(String(a.date || ''));
+    return filtered[0];
+  }
 
-function describeRecency(dateStr) {
-  if (!dateStr) return '';
-  const today = new Date();
-  const parts = String(dateStr).split('-');
-  if (parts.length !== 3) return '';
-  const y = parseInt(parts[0], 10);
-  const m = parseInt(parts[1], 10);
-  const d = parseInt(parts[2], 10);
-  if (!y || !m || !d) return '';
-  const dt = new Date(y, m - 1, d);
-  const diffMs = today.getTime() - dt.getTime();
-  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return 'Usado hoje';
-  if (diffDays === 1) return 'Usado ontem';
-  if (diffDays < 7) return 'Usado há ' + diffDays + ' dias';
-  const weeks = Math.round(diffDays / 7);
-  if (weeks === 1) return 'Usado há 1 semana';
-  if (weeks < 8) return 'Usado há ' + weeks + ' semanas';
-  const months = Math.round(diffDays / 30);
-  if (months === 1) return 'Usado há 1 mês';
-  return 'Usado há ' + months + ' meses';
-}
+  function describeRecency(dateStr) {
+    if (!dateStr) return '';
+    const today = new Date();
+    const [y, m, d] = dateStr.split('-').map(function(v) { return parseInt(v, 10); });
+    if (!y || !m || !d) return '';
+    const dt = new Date(y, m - 1, d);
+    const diffMs = today.getTime() - dt.getTime();
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Usado hoje';
+    if (diffDays === 1) return 'Usado ontem';
+    if (diffDays < 7) return 'Usado há ' + diffDays + ' dias';
+    const weeks = Math.round(diffDays / 7);
+    if (weeks === 1) return 'Usado há 1 semana';
+    if (weeks < 8) return 'Usado há ' + weeks + ' semanas';
+    const months = Math.round(diffDays / 30);
+    if (months === 1) return 'Usado há 1 mês';
+    return 'Usado há ' + months + ' meses';
+  }
 
-function showToast(message, type) {
+    const existing = songUsageHistory.find(function(e) {
+      return e.date === entry.date && e.section === entry.section && e.title === entry.title;
+    if (existing) {
+      existing.count = (existing.count || 1) + 1;
+    } else {
+      songUsageHistory.push(entry);
+    }
+    try {
+      localStorage.setItem('coroSongUsage_v1', JSON.stringify(songUsageHistory));
+    } catch (e) {
+      console.warn('Não foi possível guardar histórico de cânticos:', e);
+    }
+  };
+
+  function loadSongUsageHistory() {
+    try {
+      const raw = localStorage.getItem('coroSongUsage_v1');
+      songUsageHistory = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      songUsageHistory = [];
+    }
+    return songUsageHistory;
+  }
+
+  function getLastUsageForTitle(title) {
+    if (!title) return null;
+    loadSongUsageHistory();
+    const filtered = songUsageHistory.filter(function(e) { return e.title === title; });
+    if (!filtered.length) return null;
+    filtered.sort(function(a, b) {
+      return String(b.date || '').localeCompare(String(a.date || ''));
+    return filtered[0];
+  }
+
+  function describeRecency(dateStr) {
+    if (!dateStr) return '';
+    const today = new Date();
+    const parts = String(dateStr).split('-');
+    if (parts.length !== 3) return '';
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const d = parseInt(parts[2], 10);
+    if (!y || !m || !d) return '';
+    const dt = new Date(y, m - 1, d);
+    const diffMs = today.getTime() - dt.getTime();
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Usado hoje';
+    if (diffDays === 1) return 'Usado ontem';
+    if (diffDays < 7) return 'Usado há ' + diffDays + ' dias';
+    const weeks = Math.round(diffDays / 7);
+    if (weeks === 1) return 'Usado há 1 semana';
+    if (weeks < 8) return 'Usado há ' + weeks + ' semanas';
+    const months = Math.round(diffDays / 30);
+    if (months === 1) return 'Usado há 1 mês';
+    return 'Usado há ' + months + ' meses';
+  }
+
+
+
+  function showToast(message, type) {
     const container = document.getElementById('toastContainer');
     const el = document.createElement('div');
     el.className = 'toast ' + (type === 'success' ? 'toast--success' : type === 'error' ? 'toast--error' : '');
@@ -108,45 +160,29 @@ function showToast(message, type) {
   }
   
   function warnIfProgramHasVeryRecentSongs(program) {
-  if (!program || !program.parts) return;
-  loadSongUsageHistory();
-
-  const today = new Date();
-  const recentWarnings = [];
-
-  program.parts.forEach(function(p) {
-    if (!p.title) return;
-
-    const last = getLastUsageForTitle(p.title);
-    if (!last || !last.date) return;
-
-    const parts = last.date.split('-');
-    if (parts.length !== 3) return;
-
-    const y = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10);
-    const d = parseInt(parts[2], 10);
-    if (!y || !m || !d) return;
-
-    const dt = new Date(y, m - 1, d);
-    const diffDays = Math.round((today - dt) / (1000 * 60 * 60 * 24));
-
-    if (diffDays <= 7) {
-      recentWarnings.push(p.label + ' — ' + p.title + ' (' + describeRecency(last.date) + ')');
+    if (!program || !program.parts) return;
+    loadSongUsageHistory();
+    const today = new Date();
+    const recentWarnings = [];
+    program.parts.forEach(function(p) {
+      if (!p.title) return;
+      const last = getLastUsageForTitle(p.title);
+      if (!last || !last.date) return;
+      const parts = last.date.split('-');
+      if (parts.length !== 3) return;
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      const d = parseInt(parts[2], 10);
+      if (!y || !m || !d) return;
+      const dt = new Date(y, m - 1, d);
+      const diffDays = Math.round((today - dt) / (1000 * 60 * 60 * 24));
+      if (diffDays <= 7) {
+        recentWarnings.push(p.label + ' — ' + p.title + ' (' + describeRecency(last.date) + ')');
+      }
+    if (recentWarnings.length && typeof showToast === 'function') {
+      showToast('Atenção: alguns cânticos foram usados muito recentemente:\n' + recentWarnings.join('\n'), 'warning');
     }
-  });
-
-  if (recentWarnings.length && typeof showToast === 'function') {
-    showToast(
-      'Atenção: alguns cânticos foram usados muito recentemente:
-' +
-      recentWarnings.join('
-'),
-      'warning'
-    );
   }
-}
-
 function sameDate(d1, d2) {
     return d1.getFullYear() === d2.getFullYear() &&
            d1.getMonth() === d2.getMonth() &&
@@ -628,6 +664,7 @@ function getFeastForDate(date) {
     document.body.classList.remove(
       'liturgic-advento','liturgic-quaresma','liturgic-natal','liturgic-pascoa','liturgic-tempocomum',
       'lit-green','lit-purple','lit-red','lit-white','lit-gold'
+    );
     if (season === 'Advento') {
       document.body.classList.add('liturgic-advento','lit-purple');
     } else if (season === 'Quaresma') {
@@ -4307,10 +4344,10 @@ document.getElementById('assemblySheetBtnNoLyrics')?.addEventListener('click', (
 
 // === v0.8: Sistema automático de pesquisa de letras ===
 function openLyricsSearchModal(title, author){
-    const backdrop=document.getElementById("lyricsSearchBackdrop");
-    const list=document.getElementById("lyricsSearchList");
-    const titleEl=document.getElementById("lyricsSearchTitle");
-    if(!title) return;
+    const backdrop = document.getElementById("lyricsSearchBackdrop");
+    const list = document.getElementById("lyricsSearchList");
+    const titleEl = document.getElementById("lyricsSearchTitle");
+    if (!title) return;
     titleEl.textContent = "Procurar letra de: " + title;
 
     const queryBase = '"' + title + '"';
@@ -4318,41 +4355,47 @@ function openLyricsSearchModal(title, author){
     const enc = encodeURIComponent;
 
     const links = [
-        {label:"Liturgia.pt", url:"https://www.liturgia.pt/?s=" + enc(title)},
-        {label:"Cantemus Domino", url:"https://cantemusdomino.net/?s=" + enc(title)},
-        {label:"Google", url:"https://www.google.com/search?q=" + enc(qa)},
-        {label:"YouTube", url:"https://www.youtube.com/results?search_query=" + enc(qa)},
-        {label:"CifraClub", url:"https://www.cifraclub.com.br/?q=" + enc(title)}
+        { label: "Liturgia.pt",      url: "https://www.liturgia.pt/?s=" + enc(title) },
+        { label: "Cantemus Domino",  url: "https://cantemusdomino.net/?s=" + enc(title) },
+        { label: "Google",           url: "https://www.google.com/search?q=" + enc(qa) },
+        { label: "YouTube",          url: "https://www.youtube.com/results?search_query=" + enc(qa) },
+        { label: "CifraClub",        url: "https://www.cifraclub.com.br/?q=" + enc(title) }
     ];
 
     list.innerHTML = links.map(
-        l => `<p><a href="${l.url}" target="_blank">${l.label}</a></p>`
+        l => `<p><a href="${l.url}" target="_blank" rel="noopener noreferrer">${l.label}</a></p>`
     ).join("");
 
-    backdrop.hidden=false;
+    backdrop.hidden = false;
 }
 
-document.getElementById("lyricsSearchCloseBtn")?.addEventListener("click",()=>{
-    document.getElementById("lyricsSearchBackdrop").hidden=true;
-document.getElementById("lyricsSearchBackdrop")?.addEventListener("click",(e)=>{
-    if(e.target.id==="lyricsSearchBackdrop") e.target.hidden=true;
+document.getElementById("lyricsSearchCloseBtn")?.addEventListener("click", () => {
+    const backdrop = document.getElementById("lyricsSearchBackdrop");
+    if (backdrop) backdrop.hidden = true;
+});
+
+document.getElementById("lyricsSearchBackdrop")?.addEventListener("click", (e) => {
+    if (e.target && e.target.id === "lyricsSearchBackdrop") {
+        e.target.hidden = true;
+    }
+});
 
 // Adicionar botão de procurar letra junto a cada cântico
 (function(){
-    (window.PROGRAM_PARTS||[]).forEach(part=>{
-        const sel=document.getElementById(part.id);
-        if(!sel) return;
+    (window.PROGRAM_PARTS || []).forEach(part => {
+        const sel = document.getElementById(part.id);
+        if (!sel) return;
 
-        let btn=document.getElementById("lyricsBtn_"+part.id);
-        if(!btn){
-            btn=document.createElement("button");
-            btn.id="lyricsBtn_"+part.id;
-            btn.className="btn tiny";
-            btn.textContent="Procurar letra";
-            sel.insertAdjacentElement("afterend",btn);
+        let btn = document.getElementById("lyricsBtn_" + part.id);
+        if (!btn) {
+            btn = document.createElement("button");
+            btn.id = "lyricsBtn_" + part.id;
+            btn.className = "btn tiny";
+            btn.textContent = "Procurar letra";
+            sel.insertAdjacentElement("afterend", btn);
         }
 
-        btn.addEventListener("click",()=>{
+        btn.addEventListener("click", () => {
             const title = sel.value || "";
             if (!title) {
                 if (typeof showToast === "function") {
@@ -4360,18 +4403,23 @@ document.getElementById("lyricsSearchBackdrop")?.addEventListener("click",(e)=>{
                 }
                 return;
             }
+
             let author = "";
             try {
                 if (Array.isArray(window.songs)) {
                     const match = window.songs.find(s => {
                         const st = s.Título || s.Titulo || s.titulo || s.tituloOriginal || "";
                         return st === title;
+                    });
                     if (match) {
                         author = match.Autor || match.autor || match.Compositor || "";
                     }
                 }
-            } catch(e) {
+            } catch (e) {
                 console.error("Erro ao procurar autor para pesquisa de letra:", e);
             }
+
             openLyricsSearchModal(title, author);
-})();;
+        });
+    });
+})();\n
