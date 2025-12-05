@@ -13,130 +13,102 @@ const PROGRAM_PARTS = [
     { id: 'comunhao',       label: 'Comunhão',            icon: '🍞' },
     { id: 'acaoGracas',     label: 'Ação de Graças',      icon: '🙌' },
     { id: 'final',          label: 'Final',               icon: '🚪' }
-  ];
-  window.PROGRAM_PARTS = PROGRAM_PARTS;
+];
+window.PROGRAM_PARTS = PROGRAM_PARTS;
 
+let songs = [];
+let history = [];
+let partLyricsOverrides = {};
+let currentLyricsPartId = null;
+let currentSongSelectPartId = null;
+let partExtraData = {};
+let songUsageHistory = [];
 
-  let songs = [];
-  let history = [];
-  let partLyricsOverrides = {};
-  let currentLyricsPartId = null;
-  let currentSongSelectPartId = null;
-  let partExtraData = {}; // dados extra por parte: título/tom/letra/acordes/notas
-  let songUsageHistory = []; // histórico de utilização de cânticos
-  // Registo de utilização de cânticos (para histórico e etiquetas)
-  window.recordSongUsage = function(titulo, secaoLabel, dateIso) {
-    try {
-      const key = 'coroSongUsage_v1';
-      const raw = localStorage.getItem(key);
-      songUsageHistory = raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      songUsageHistory = [];
-    }
-    const todayIso = (dateIso && String(dateIso)) || new Date().toISOString().slice(0,10);
+// -----------------------------------------------------
+//  HISTÓRICO DE UTILIZAÇÃO DOS CÂNTICOS
+// -----------------------------------------------------
+window.recordSongUsage = function (titulo, secaoLabel, dateIso) {
+
+    loadSongUsageHistory();
+
+    const todayIso =
+        (dateIso && String(dateIso)) ||
+        new Date().toISOString().slice(0, 10);
+
     const entry = {
-      date: todayIso,
-      section: secaoLabel || null,
-      title: titulo || '',
-      count: 1
+        date: todayIso,
+        section: secaoLabel || null,
+        title: titulo || "",
+        count: 1
     };
-  function loadSongUsageHistory() {
-    try {
-      const raw = localStorage.getItem('coroSongUsage_v1');
-      songUsageHistory = raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      songUsageHistory = [];
-    }
-    return songUsageHistory;
-  }
 
-  function getLastUsageForTitle(title) {
-    if (!title) return null;
-    loadSongUsageHistory();
-    const filtered = songUsageHistory.filter(function(e) { return e.title === title; });
-    if (!filtered.length) return null;
-    filtered.sort(function(a, b) {
-      return String(b.date || '').localeCompare(String(a.date || ''));
-    return filtered[0];
-  }
+    // verifica se já existe entrada igual
+    const existing = songUsageHistory.find(e =>
+        e.date === entry.date &&
+        e.section === entry.section &&
+        e.title === entry.title
+    );
 
-  function describeRecency(dateStr) {
-    if (!dateStr) return '';
-    const today = new Date();
-    const [y, m, d] = dateStr.split('-').map(function(v) { return parseInt(v, 10); });
-    if (!y || !m || !d) return '';
-    const dt = new Date(y, m - 1, d);
-    const diffMs = today.getTime() - dt.getTime();
-    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return 'Usado hoje';
-    if (diffDays === 1) return 'Usado ontem';
-    if (diffDays < 7) return 'Usado há ' + diffDays + ' dias';
-    const weeks = Math.round(diffDays / 7);
-    if (weeks === 1) return 'Usado há 1 semana';
-    if (weeks < 8) return 'Usado há ' + weeks + ' semanas';
-    const months = Math.round(diffDays / 30);
-    if (months === 1) return 'Usado há 1 mês';
-    return 'Usado há ' + months + ' meses';
-  }
-
-    const existing = songUsageHistory.find(function(e) {
-      return e.date === entry.date && e.section === entry.section && e.title === entry.title;
     if (existing) {
-      existing.count = (existing.count || 1) + 1;
+        existing.count = (existing.count || 1) + 1;
     } else {
-      songUsageHistory.push(entry);
+        songUsageHistory.push(entry);
     }
-    try {
-      localStorage.setItem('coroSongUsage_v1', JSON.stringify(songUsageHistory));
-    } catch (e) {
-      console.warn('Não foi possível guardar histórico de cânticos:', e);
-    }
-  };
 
-  function loadSongUsageHistory() {
     try {
-      const raw = localStorage.getItem('coroSongUsage_v1');
-      songUsageHistory = raw ? JSON.parse(raw) : [];
+        localStorage.setItem("coroSongUsage_v1", JSON.stringify(songUsageHistory));
     } catch (e) {
-      songUsageHistory = [];
+        console.warn("Não foi possível guardar histórico de cânticos:", e);
+    }
+};
+
+function loadSongUsageHistory() {
+    try {
+        const raw = localStorage.getItem("coroSongUsage_v1");
+        songUsageHistory = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+        songUsageHistory = [];
     }
     return songUsageHistory;
-  }
+}
 
-  function getLastUsageForTitle(title) {
+function getLastUsageForTitle(title) {
     if (!title) return null;
     loadSongUsageHistory();
-    const filtered = songUsageHistory.filter(function(e) { return e.title === title; });
+
+    const filtered = songUsageHistory.filter(e => e.title === title);
     if (!filtered.length) return null;
-    filtered.sort(function(a, b) {
-      return String(b.date || '').localeCompare(String(a.date || ''));
+
+    filtered.sort((a, b) =>
+        String(b.date || "").localeCompare(String(a.date || ""))
+    );
+
     return filtered[0];
-  }
+}
 
-  function describeRecency(dateStr) {
-    if (!dateStr) return '';
+function describeRecency(dateStr) {
+    if (!dateStr) return "";
+
     const today = new Date();
-    const parts = String(dateStr).split('-');
-    if (parts.length !== 3) return '';
-    const y = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10);
-    const d = parseInt(parts[2], 10);
-    if (!y || !m || !d) return '';
+    const [y, m, d] = dateStr.split("-").map(v => parseInt(v, 10));
+    if (!y || !m || !d) return "";
+
     const dt = new Date(y, m - 1, d);
-    const diffMs = today.getTime() - dt.getTime();
+    const diffMs = today - dt;
     const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return 'Usado hoje';
-    if (diffDays === 1) return 'Usado ontem';
-    if (diffDays < 7) return 'Usado há ' + diffDays + ' dias';
+
+    if (diffDays === 0) return "Usado hoje";
+    if (diffDays === 1) return "Usado ontem";
+    if (diffDays < 7) return "Usado há " + diffDays + " dias";
+
     const weeks = Math.round(diffDays / 7);
-    if (weeks === 1) return 'Usado há 1 semana';
-    if (weeks < 8) return 'Usado há ' + weeks + ' semanas';
+    if (weeks === 1) return "Usado há 1 semana";
+    if (weeks < 8) return "Usado há " + weeks + " semanas";
+
     const months = Math.round(diffDays / 30);
-    if (months === 1) return 'Usado há 1 mês';
-    return 'Usado há ' + months + ' meses';
-  }
-
-
+    if (months === 1) return "Usado há 1 mês";
+    return "Usado há " + months + " meses";
+}
 
   function showToast(message, type) {
     const container = document.getElementById('toastContainer');
