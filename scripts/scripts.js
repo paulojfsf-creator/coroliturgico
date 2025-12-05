@@ -1035,7 +1035,7 @@ function getFeastForDate(date) {
       select.innerHTML = '<option value="">— escolher —</option>' +
         titles.map(t => '<option value="' + t + '">' + t + '</option>').join('');
       if (currentValue) select.value = currentValue;
-}););
+});
   }
 
   // ---- Histórico ----
