@@ -1382,8 +1382,7 @@ function getProgramFromForm() {
           renderSongUsageHistory();
         }
       }, 100);
-    }
-  });
+
 
   // Inicializar histórico de cânticos se já estiver na tab
   if (document.readyState === 'loading') {
@@ -1427,8 +1426,7 @@ function getProgramFromForm() {
     // Atualizar histórico de cânticos
     if (typeof renderSongUsageHistory === 'function') {
       renderSongUsageHistory();
-    }
-  });
+
 
   
 // Função para atualizar dashboard (movida para fora de updatePreview para corrigir scoping)
@@ -1663,8 +1661,7 @@ function updatePreview() {
       try { win.focus(); win.print(); } catch (e) {}
     } else {
       showToast('Permite pop-ups para ver o folheto.', 'error');
-    }
-  });
+
   // Ensaios – WhatsApp
   function refreshRehearsalPrograms() {
     const select = document.getElementById('rehearsalProgram');
@@ -2586,8 +2583,7 @@ if (songsTableContainer) {
       if (!window.PROGRAM_PARTS) return;
       const partLabels = window.PROGRAM_PARTS.map((p) => p.label);
       return window.showUseDropdown(btn, partLabels, titulo);
-    }
-  });
+
 }
 if (lyricsModalCancel) {
     lyricsModalCancel.addEventListener('click', () => {
@@ -2615,8 +2611,7 @@ if (lyricsModalCancel) {
       }
       lyricsModal.style.display = 'none';
     });
-  }
-});
+  
 
 
 // ==== editor-quill.js ====
@@ -2732,8 +2727,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 lyricsModal.style.display = 'none';
             });
         }
-    }
-});
+    
 
 
 
@@ -2867,8 +2861,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (window.showToast) window.showToast('Cântico editado e inserido no programa.', 'success');
       closeModal();
     });
-  }
-});
+  
 window.showUseDropdown = function(btn, partLabels, titulo){
   const m = document.createElement('div');
   m.className = 'use-modal';
@@ -3466,8 +3459,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
         renderCalendar();
         renderUpcomingEvents();
       }, 100);
-    }
-  });
+
 
   // Atualizar calendário quando programa é guardado
   window.updateCalendarAfterSave = function() {
@@ -3492,8 +3484,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     if (e.key === 'coroHistory_v1') {
       renderCalendar();
       renderUpcomingEvents();
-    }
-  });
+
 })();
 
 // ===== CONTROLES DE IMPRESSÃO E MARGEM (OBSOLETO - REMOVIDO v14.0) =====
@@ -3603,8 +3594,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     const target = e.target;
     if (target && target.dataset && target.dataset.tab === 'tab-videos') {
       setTimeout(renderVideos, 100);
-    }
-  });
+
   
   // Exportar função para ser usada externamente
   window.renderVideos = renderVideos;
@@ -3989,8 +3979,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     const target = e.target;
     if (target && target.dataset && target.dataset.tab === 'tab-folhetos') {
       setTimeout(renderSavedLeaflets, 100);
-    }
-  });
+
   
   // Exportar funções
   window.renderSavedLeaflets = renderSavedLeaflets;
@@ -4376,8 +4365,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     const target = e.target;
     if (target && target.dataset && target.dataset.tab === 'tab-catalogo') {
       setTimeout(renderCustomSongs, 100);
-    }
-  });
+
 })();
 
 // ===== GESTÃO DE IMAGEM DO DOMINGO =====
