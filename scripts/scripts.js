@@ -1035,7 +1035,7 @@ function getFeastForDate(date) {
       select.innerHTML = '<option value="">— escolher —</option>' +
         titles.map(t => '<option value="' + t + '">' + t + '</option>').join('');
       if (currentValue) select.value = currentValue;
-    });
+}););
   }
 
   // ---- Histórico ----
@@ -1677,7 +1677,7 @@ function updatePreview() {
       select.appendChild(opt);
     });
     if (currentValue) select.value = currentValue;
-  }
+});
 
   document.getElementById('rehearsalWhatsAppBtn').addEventListener('click', () => {
     const dateStr = document.getElementById('rehearsalDate').value;
