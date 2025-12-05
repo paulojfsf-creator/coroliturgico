@@ -51,47 +51,22 @@ const PROGRAM_PARTS = [
   }
 
   function getLastUsageForTitle(title) {
-    if (!title) return null;
-    loadSongUsageHistory();
-    const filtered = songUsageHistory.filter(function(e) { return e.title === title; });
-    if (!filtered.length) return null;
-    filtered.sort(function(a, b) {
-      return String(b.date || '').localeCompare(String(a.date || ''));
-    return filtered[0];
-  }
+  if (!title) return null;
+  loadSongUsageHistory();
 
-  function describeRecency(dateStr) {
-    if (!dateStr) return '';
-    const today = new Date();
-    const [y, m, d] = dateStr.split('-').map(function(v) { return parseInt(v, 10); });
-    if (!y || !m || !d) return '';
-    const dt = new Date(y, m - 1, d);
-    const diffMs = today.getTime() - dt.getTime();
-    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return 'Usado hoje';
-    if (diffDays === 1) return 'Usado ontem';
-    if (diffDays < 7) return 'Usado há ' + diffDays + ' dias';
-    const weeks = Math.round(diffDays / 7);
-    if (weeks === 1) return 'Usado há 1 semana';
-    if (weeks < 8) return 'Usado há ' + weeks + ' semanas';
-    const months = Math.round(diffDays / 30);
-    if (months === 1) return 'Usado há 1 mês';
-    return 'Usado há ' + months + ' meses';
-  }
+  const filtered = songUsageHistory.filter(function(e) {
+    return e.title === title;
+  });
 
-    const existing = songUsageHistory.find(function(e) {
-      return e.date === entry.date && e.section === entry.section && e.title === entry.title;
-    if (existing) {
-      existing.count = (existing.count || 1) + 1;
-    } else {
-      songUsageHistory.push(entry);
-    }
-    try {
-      localStorage.setItem('coroSongUsage_v1', JSON.stringify(songUsageHistory));
-    } catch (e) {
-      console.warn('Não foi possível guardar histórico de cânticos:', e);
-    }
-  };
+  if (!filtered.length) return null;
+
+  filtered.sort(function(a, b) {
+    return String(b.date || '').localeCompare(String(a.date || ''));
+  });
+
+  return filtered[0];
+}
+;
 
   function loadSongUsageHistory() {
     try {
