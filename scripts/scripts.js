@@ -40,33 +40,23 @@ const PROGRAM_PARTS = [
       title: titulo || '',
       count: 1
     };
-  function loadSongUsageHistory() {
-    try {
-      const raw = localStorage.getItem('coroSongUsage_v1');
-      songUsageHistory = raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      songUsageHistory = [];
+    
+    const existing = songUsageHistory.find(function(e) {
+      return e.date === entry.date && e.section === entry.section && e.title === entry.title;
+    });
+    
+    if (existing) {
+      existing.count = (existing.count || 1) + 1;
+    } else {
+      songUsageHistory.push(entry);
     }
-    return songUsageHistory;
-  }
-
-  function getLastUsageForTitle(title) {
-  if (!title) return null;
-  loadSongUsageHistory();
-
-  const filtered = songUsageHistory.filter(function(e) {
-    return e.title === title;
-  });
-
-  if (!filtered.length) return null;
-
-  filtered.sort(function(a, b) {
-    return String(b.date || '').localeCompare(String(a.date || ''));
-  });
-
-  return filtered[0];
-}
-;
+    
+    try {
+      localStorage.setItem('coroSongUsage_v1', JSON.stringify(songUsageHistory));
+    } catch (e) {
+      console.warn('Não foi possível guardar histórico de cânticos:', e);
+    }
+  };
 
   function loadSongUsageHistory() {
     try {
@@ -85,6 +75,7 @@ const PROGRAM_PARTS = [
     if (!filtered.length) return null;
     filtered.sort(function(a, b) {
       return String(b.date || '').localeCompare(String(a.date || ''));
+    });
     return filtered[0];
   }
 
@@ -110,7 +101,6 @@ const PROGRAM_PARTS = [
     if (months === 1) return 'Usado há 1 mês';
     return 'Usado há ' + months + ' meses';
   }
-
 
 
   function showToast(message, type) {
@@ -154,6 +144,7 @@ const PROGRAM_PARTS = [
       if (diffDays <= 7) {
         recentWarnings.push(p.label + ' — ' + p.title + ' (' + describeRecency(last.date) + ')');
       }
+    });
     if (recentWarnings.length && typeof showToast === 'function') {
       showToast('Atenção: alguns cânticos foram usados muito recentemente:\n' + recentWarnings.join('\n'), 'warning');
     }
@@ -639,6 +630,7 @@ function getFeastForDate(date) {
     document.body.classList.remove(
       'liturgic-advento','liturgic-quaresma','liturgic-natal','liturgic-pascoa','liturgic-tempocomum',
       'lit-green','lit-purple','lit-red','lit-white','lit-gold'
+    );
     if (season === 'Advento') {
       document.body.classList.add('liturgic-advento','lit-purple');
     } else if (season === 'Quaresma') {
@@ -676,6 +668,8 @@ function getFeastForDate(date) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById(tabId).classList.add('active');
+    });
+  });
 
   const themeToggleBtn = document.getElementById('themeToggleBtn');
   function getAutoTheme() {
@@ -741,6 +735,7 @@ function getFeastForDate(date) {
         songsTableContainer.innerHTML = 'Não foi possível carregar automaticamente o catálogo. Usa o CSV manual ou tenta mais tarde.';
         showToast('Erro ao carregar catálogo do Google Sheets.', 'error');
       }
+    });
   }
 
   function renderSongsTable() {
@@ -760,6 +755,7 @@ function getFeastForDate(date) {
       if (themeVal && tema !== themeVal) return false;
       if (searchVal && !titulo.toLowerCase().includes(searchVal)) return false;
       return true;
+    });
 
     // Carregar histórico de uso
     loadSongUsageHistory();
@@ -801,6 +797,7 @@ function getFeastForDate(date) {
         '<td>' + (video ? '<a href="' + video + '" target="_blank">Vídeo</a>' : '<span class="muted">—</span>') + '</td>' +
         '<td>' + usageHtml + '</td>' +
       '</tr>';
+    });
     html += '</tbody></table>';
     songsTableContainer.classList.remove('muted');
     songsTableContainer.innerHTML = html;
@@ -813,6 +810,8 @@ function getFeastForDate(date) {
         if (song) {
           showSongUsageModal(song);
         }
+      });
+    });
 
     populateSongDropdowns();
   }
@@ -867,6 +866,7 @@ function getFeastForDate(date) {
           '<td>' + section + '</td>' +
           '<td style="font-size: 0.85rem;">' + programTitle + '</td>' +
         '</tr>';
+      });
       
       html += '</tbody></table>';
       
@@ -885,6 +885,7 @@ function getFeastForDate(date) {
       if (deleteBtn) {
         deleteBtn.addEventListener('click', function() {
           deleteSongHistory(titulo);
+        });
       }
     }
     
@@ -939,6 +940,7 @@ function getFeastForDate(date) {
     songUsageModalClose.addEventListener('click', () => {
       const modal = document.getElementById('songUsageModal');
       if (modal) modal.style.display = 'none';
+    });
   }
 
   function refreshFilters() {
@@ -949,6 +951,7 @@ function getFeastForDate(date) {
       const tema = s.Tema || s.tema;
       if (autor) authors.add(autor);
       if (tema) temas.add(tema);
+    });
     filterAuthor.innerHTML = '<option value="">Todos</option>' + Array.from(authors).sort().map(a => '<option>' + a + '</option>').join('');
     filterTheme.innerHTML = '<option value="">Todos</option>' + Array.from(temas).sort().map(t => '<option>' + t + '</option>').join('');
   }
@@ -977,6 +980,8 @@ function getFeastForDate(date) {
         csvError.innerHTML = 'Erro ao ler o ficheiro CSV.';
         csvError.style.display = 'block';
       }
+    });
+  });
 
   filterAuthor.addEventListener('change', renderSongsTable);
   filterTheme.addEventListener('change', renderSongsTable);
@@ -991,6 +996,7 @@ function getFeastForDate(date) {
       select.innerHTML = '<option value="">— escolher —</option>' +
         titles.map(t => '<option value="' + t + '">' + t + '</option>').join('');
       if (currentValue) select.value = currentValue;
+    });
   }
 
   // ---- Histórico ----
@@ -1016,6 +1022,7 @@ function exportSongUsageCsv() {
       const s = String(v).replace(/"/g, '""');
       return '"' + s + '"';
     }).join(',') + '\n';
+  });
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1080,7 +1087,7 @@ function exportFullStateJson() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }
+});
 
 function importFullStateJson() {
   const textarea = document.getElementById('fullStateImportArea');
@@ -1121,7 +1128,7 @@ function importFullStateJson() {
         sel.value = '';
       }
     if (typeof updatePreview === 'function') updatePreview();
-  }
+});
 
   // Restaurar histórico de cânticos
   if (parsed.songUsage && Array.isArray(parsed.songUsage)) {
@@ -1183,7 +1190,7 @@ function renderHistory() {
       deleteProgramFromHistory(idx);
 
   refreshRehearsalPrograms();
-}
+});
 
 function getProgramFromForm() {
     const dateInput = document.getElementById('date');
@@ -1213,7 +1220,7 @@ function getProgramFromForm() {
         label: part.label
       };
     return record;
-  }
+});
 
   function applyProgramToForm(rec) {
     const dateInput = document.getElementById('date');
@@ -1241,7 +1248,7 @@ function getProgramFromForm() {
       applyHeaderIcon(info.season);
       updatePreview();
     }
-  }
+});
 
   function loadProgramFromHistory(idx) {
     const rec = history[idx];
@@ -1336,6 +1343,7 @@ function getProgramFromForm() {
       if (historicoTab && historicoTab.classList.contains('active')) {
         renderSongUsageHistory();
       }
+    });
   } else {
     const historicoTab = document.getElementById('tab-historico');
     if (historicoTab && historicoTab.classList.contains('active')) {
@@ -1360,7 +1368,7 @@ function getProgramFromForm() {
         if (part && part.title) {
           window.recordSongUsage(part.title, part.label, rec.date);
         }
-    }
+});
     
     renderHistory();
     updatePreview();
@@ -1439,6 +1447,7 @@ function updatePreview() {
       day: 'numeric',
       month: 'long',
       year: 'numeric'
+    });
 
     const extraRaw = extraThemeInput.value.trim();
     let extraHtml = '';
@@ -1562,43 +1571,19 @@ function updatePreview() {
         id: part.id,
         label: part.label,
         title: select.value
+      });
+    });
 
     warnIfProgramHasVeryRecentSongs(programForWarnings);
 
     preview.innerHTML = html;
-  }
+});
 
   PROGRAM_PARTS.forEach(part => {
     const select = document.getElementById(part.id);
     if (select) select.addEventListener('change', updatePreview);
+  });
 
-
-
-    
-
-    const win = // window.open popup removido na v0.9.3;
-    if (win) {
-      win.document.write('<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8"><title>Folheto da assembleia</title><style>' + leafletCss + '</style></head><body>' + content + '</body></html>');
-      win.document.close();
-      try { win.focus(); win.print(); } catch (e) {}
-    } else {
-      showToast('Permite pop-ups para ver o folheto.', 'error');
-    }
-  })
-;
-
-
-
-
-    
-
-    const win = // window.open popup removido na v0.9.3;
-    if (win) {
-      win.document.write('<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8"><title>Folheto da assembleia (sem letras)</title><style>' + leafletCss + '</style></head><body>' + content + '</body></html>');
-      win.document.close();
-      try { win.focus(); win.print(); } catch (e) {}
-    } else {
-      showToast('Permite pop-ups para ver o folheto.', 'error');
 
   // Ensaios – WhatsApp
   function refreshRehearsalPrograms() {
@@ -1613,6 +1598,7 @@ function updatePreview() {
       opt.value = idx;
       opt.innerHTML = label;
       select.appendChild(opt);
+    });
     if (currentValue) select.value = currentValue;
   }
 
@@ -1644,6 +1630,7 @@ function updatePreview() {
       day: 'numeric',
       month: 'long',
       year: 'numeric'
+    });
     const horaFormatada = timeStr.substring(0,5);
 
     let text = '';
@@ -1662,7 +1649,8 @@ function updatePreview() {
         var label = p.label || partId;
         text += '- ' + encodeURIComponent(label + ': ' + p.title) + '%0A';
       text += '%0A';
-    }
+    });
+
     if (notes) text += 'Notas: ' + encodeURIComponent(notes) + '%0A%0A';
     
     // Adicionar link das partituras
@@ -1704,6 +1692,7 @@ function updatePreview() {
       day: 'numeric',
       month: 'long',
       year: 'numeric'
+    });
     const horaFormatada = timeStr.substring(0,5);
 
     // Assunto do email
@@ -1730,7 +1719,7 @@ function updatePreview() {
         var label = p.label || partId;
         body += '  • ' + encodeURIComponent(label + ': ' + p.title) + '%0D%0A';
       body += '%0D%0A';
-    }
+    });
     
     if (notes) {
       body += '📝 NOTAS:%0D%0A';
@@ -1869,7 +1858,8 @@ function openSongSelectModal(partId) {
         tema.split(/[;,]/).forEach(t => {
           const clean = t.trim();
           if (clean) themes.add(clean);
-      }
+      });
+
     Array.from(themes).sort((a, b) => a.localeCompare(b, 'pt-PT')).forEach(t => {
       const opt = document.createElement('option');
       opt.value = t;
@@ -1878,7 +1868,7 @@ function openSongSelectModal(partId) {
     if (Array.from(themes).includes(prev)) {
       themeSelect.value = prev;
     }
-  }
+});
 
   const searchInput = document.getElementById('songSelectSearch');
   if (searchInput) searchInput.value = '';
@@ -2037,7 +2027,8 @@ function closeSongSelectModal() {
         }
         const modal = document.getElementById('songSelectModal');
         if (modal) modal.hidden = true;
-  }
+  });
+
 function renderSongSelectList() {
   const listEl = document.getElementById('songSelectList');
   if (!listEl) return;
@@ -2110,7 +2101,7 @@ function renderSongSelectList() {
     parts.push(html);
 
   listEl.innerHTML = parts.join('');
-}
+});
 
 function setupProgramButtons() {
   // Botões Selecionar – abrem o catálogo rápido
@@ -2141,7 +2132,9 @@ function setupProgramButtons() {
         showToast('Não há vídeo/áudio associado a este cântico no catálogo.', 'warning');
         return;
       }
-      // window.open popup removido na v0.9.3;
+      window.open(videoUrl, '_blank');
+    });
+  });
 
   // Eventos do modal de seleção
   const searchInput = document.getElementById('songSelectSearch');
@@ -2181,7 +2174,8 @@ function setupProgramButtons() {
             select.appendChild(opt);
           }
           select.value = title;
-        }
+        });
+
         closeSongSelectModal();
         updatePreview();
         showToast('Cântico selecionado para "' + (PROGRAM_PARTS.find(p => p.id === currentSongSelectPartId)?.label || '') + '".', 'success');
@@ -2192,7 +2186,7 @@ function setupProgramButtons() {
           return;
         }
         // Mostrar letra simples em janela separada
-        const w = // window.open popup removido na v0.9.3;
+        const w = window.open('', '_blank');
         if (w) {
           w.document.write('<pre style="white-space:pre-wrap;font-family:system-ui, sans-serif;font-size:14px;padding:1rem;">' +
             lyrics.replace(/</g, '&lt;') +
@@ -2224,7 +2218,8 @@ function setupProgramButtons() {
   if (cancelBtn) {
     cancelBtn.addEventListener('click', () => {
       closeLyricsModal();
-  }
+  });
+
   if (saveBtn) {
     saveBtn.addEventListener('click', () => {
       if (!currentLyricsPartId) {
@@ -2240,7 +2235,7 @@ function setupProgramButtons() {
       closeLyricsModal();
       updatePreview();
       showToast('Letra atualizada para esta parte no programa atual.', 'success');
-  }
+});
 }
 
 function init() {
@@ -2260,7 +2255,7 @@ function init() {
       dateInput.addEventListener('change', () => {
         updatePreview();
         updateDashboard();
-    }
+});
 
     // Atalhos de dashboard para tabs
     document.querySelectorAll('[data-go-tab]').forEach(btn => {
@@ -2280,7 +2275,7 @@ function init() {
     if (exportPdfBtn) {
       exportPdfBtn.addEventListener('click', () => {
         window.print();
-    }
+});
 
     // Refresh catálogo manual
     const refreshCatalogBtn = document.getElementById('refreshCatalogBtn');
@@ -2295,13 +2290,13 @@ function init() {
             const now = new Date();
             catalogStatus.textContent = 'Catálogo atualizado às ' + now.toLocaleTimeString();
           }
-    }
+});
 
     // Gestor de ensaios
     if (typeof initRehearsalManager === 'function') {
       initRehearsalManager();
     }
-  }
+});
 
   window.addEventListener('DOMContentLoaded', init);
 
@@ -2443,7 +2438,7 @@ document.addEventListener('DOMContentLoaded', () => {
       td.appendChild(btnLetra);
       td.appendChild(btnUsar);
       row.appendChild(td);
-  }
+});
 
   if (typeof renderSongsTable === 'function') {
     const originalRenderSongsTable = renderSongsTable;
@@ -2492,13 +2487,15 @@ if (songsTableContainer) {
 if (lyricsModalCancel) {
     lyricsModalCancel.addEventListener('click', () => {
       lyricsModal.style.display = 'none';
-  }
+  });
+
   if (lyricsModal) {
     lyricsModal.addEventListener('click', (e) => {
       if (e.target.classList.contains('modal-backdrop')) {
         lyricsModal.style.display = 'none';
       }
-  }
+  });
+
   if (lyricsModalSave) {
     lyricsModalSave.addEventListener('click', () => {
       const titulo = lyricsModal.dataset.currentTitle;
@@ -2542,7 +2539,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           }
         }
-    }
+});
     quill.root.innerHTML = content || '';
   }
 
@@ -2563,7 +2560,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lyricsModal.dataset.currentTitle = titulo;
       initQuill(letra);
       lyricsModal.style.display = 'block';
-  }
+});
 
   // Guardar (catálogo ou programa)
   if (saveBtn) {
@@ -2585,7 +2582,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.applyProgramLyricsFromEditor(htmlContent);
       }
       lyricsModal.style.display = 'none';
-  }
+});
 
   // Expor função global para o programa abrir o editor
   window.openLyricsEditorForProgram = function(partId, currentHtml, titleLabel) {
@@ -2617,11 +2614,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalDialog) {
             modalDialog.addEventListener('click', (e) => {
                 e.stopPropagation();
-        }
+        });
+
         if (modalBackdrop) {
             modalBackdrop.addEventListener('click', () => {
                 lyricsModal.style.display = 'none';
-        }
+});
     
 
 
@@ -2669,6 +2667,7 @@ window.openSongEditModal = function(titulo) {
     const icon = p.icon ? p.icon + ' ' : '';
     opt.textContent = icon + p.label;
     partSelect.appendChild(opt);
+  });
 
   modal.dataset.currentTitle = titulo || '';
   modal.hidden = false;
@@ -2688,7 +2687,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (cancelBtn) {
     cancelBtn.addEventListener('click', function() {
       closeModal();
-  }
+});
 
   if (saveBtn) {
     saveBtn.addEventListener('click', function() {
@@ -2785,6 +2784,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       m.remove();
     };
     list.appendChild(b);
+  });
 
   // Opção extra: editar antes de inserir
   const editButton = document.createElement('button');
@@ -2872,6 +2872,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     const events = [];
     Object.keys(LITURGICAL_EVENTS).forEach(year => {
       events.push(...LITURGICAL_EVENTS[year]);
+    });
     return events;
   }
 
@@ -2881,6 +2882,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     return allEvents.filter(event => {
       const eventDate = new Date(event.date);
       return eventDate.getFullYear() === year && eventDate.getMonth() === month;
+    });
   }
 
   // Obter próximos eventos
@@ -3008,6 +3010,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       const history = JSON.parse(historyData);
       return history.some(function(prog) {
         return prog.date === dateStr;
+      });
     } catch (e) {
       return false;
     }
@@ -3022,6 +3025,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       const history = JSON.parse(historyData);
       return history.find(function(prog) {
         return prog.date === dateStr;
+      });
     } catch (e) {
       return null;
     }
@@ -3044,6 +3048,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       year: 'numeric', 
       month: 'long', 
       day: 'numeric' 
+    });
 
     let partsHTML = '';
     const partLabels = window.PROGRAM_PARTS || [];
@@ -3117,7 +3122,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
         modal.remove();
       }
     };
-  }
+  });
 
   // Função global para editar programa a partir do calendário
   window.editProgramFromCalendar = function(dateStr) {
@@ -3160,6 +3165,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
         if (select && program[part.id]) {
           select.value = program[part.id];
         }
+      });
 
       // Scroll para o topo
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3177,6 +3183,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       year: 'numeric', 
       month: 'long', 
       day: 'numeric' 
+    });
 
     let eventsHTML = '';
     if (events && events.length > 0) {
@@ -3329,6 +3336,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     document.addEventListener('DOMContentLoaded', function() {
       renderCalendar();
       renderUpcomingEvents();
+    });
   } else {
     renderCalendar();
     renderUpcomingEvents();
@@ -3341,7 +3349,8 @@ window.showUseDropdown = function(btn, partLabels, titulo){
         renderCalendar();
         renderUpcomingEvents();
       }, 100);
-
+    }
+  });
 
   // Atualizar calendário quando programa é guardado
   window.updateCalendarAfterSave = function() {
@@ -3358,6 +3367,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
           window.updateCalendarAfterSave();
         }
       }, 500);
+    });
   }
 
   // Também atualizar quando há mudanças no localStorage
@@ -3365,7 +3375,9 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     if (e.key === 'coroHistory_v1') {
       renderCalendar();
       renderUpcomingEvents();
-
+    }
+  });
+}
 })();
 
 // ===== CONTROLES DE IMPRESSÃO E MARGEM (OBSOLETO - REMOVIDO v14.0) =====
@@ -3395,13 +3407,13 @@ window.showUseDropdown = function(btn, partLabels, titulo){
         const title = (song.Título || song.Titulo || song.titulo || '').toLowerCase();
         const author = (song.Autor || song.autor || '').toLowerCase();
         return title.includes(searchTerm) || author.includes(searchTerm);
-    }
+    });
     
     if (selectedSection) {
       filteredSongs = filteredSongs.filter(song => {
         const theme = song.Tema || song.tema || '';
         return theme.includes(selectedSection);
-    }
+    });
     
     if (!filteredSongs.length) {
       container.innerHTML = '<p class="small muted">Nenhum cântico encontrado com vídeo. Adiciona links de vídeo na coluna "Video" do catálogo.</p>';
@@ -3472,9 +3484,10 @@ window.showUseDropdown = function(btn, partLabels, titulo){
     const target = e.target;
     if (target && target.dataset && target.dataset.tab === 'tab-videos') {
       setTimeout(renderVideos, 100);
-
+    }
+  });
   
-  // Exportar função para ser usada externamente
+  // Exportar função para ser usada externalmente
   window.renderVideos = renderVideos;
 })();
 
@@ -3496,7 +3509,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       savedLeaflets = [];
     }
     return savedLeaflets;
-  }
+  });
   
   // Guardar folhetos no localStorage
   function saveSavedLeaflets() {
@@ -3506,7 +3519,7 @@ window.showUseDropdown = function(btn, partLabels, titulo){
       console.error('Erro ao guardar folhetos:', e);
       showToast('Erro ao guardar folheto. LocalStorage pode estar cheio.', 'error');
     }
-  }
+  });
   
   // Renderizar lista de folhetos guardados
   function renderSavedLeaflets() {
